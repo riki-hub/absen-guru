@@ -5,9 +5,9 @@ $_SESSION['gambar'];
 $_SESSION['user_id'];
 if (!isset($_SESSION['nama'])) {
   header("Location: ../");
+
   exit();
 }
-
 
 if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
   echo "<script>
@@ -484,8 +484,10 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
               <input class="form-control" type="text" name="beda" id="tanggal" readonly>
             </div>
           </div>
+          
 
 
+           <a class="btn btn-primary" id="startKamera" onclick="startCamera()">Mulai Kamera</a>
           <video id="video" autoplay style="display:none; width: 100%; height: auto;"></video>
           <canvas id="canvas" style="display:none; width: 100%; height: auto;"></canvas>
 
@@ -494,7 +496,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
       </div>
       <div class="modal-footer">
   <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-  <button type="submit" class="btn btn-primary" onclick="takePicture()">Masuk</button>
+  <button type="submit" class="btn btn-primary" id="btn-masuk" style="display: none;" onclick="takePicture()">Masuk</button>
 </div>
       </form>
     </div>
@@ -735,9 +737,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
   const snapButton = document.getElementById('snap');
   const photoInput = document.getElementById('photo');
 
-  document.getElementById("")
-
   function startCamera() {
+    const btnMasuk = document.getElementById('btn-masuk');
+
+// Tampilkan tombol "Masuk"
+
     navigator.mediaDevices.getUserMedia({
         video: true
       })
@@ -745,6 +749,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
         video.srcObject = stream;
         video.style.display = 'block';
         snapButton.style.display = 'inline';
+        btnMasuk.style.display = 'inline-block';
 
         // Update canvas size to match video size
         video.onloadedmetadata = () => {
@@ -793,8 +798,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
   let html5QrCode;
 
   function onScanSuccess(decodedText, decodedResult) {
-    startCamera();
-    
     console.log(`Code matched = ${decodedText}`, decodedResult);
     const currentDate = new Date();
     const currentDay = currentDate.getDay();
@@ -1029,9 +1032,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
           }
         }
         $('#scanResultModal').modal('show');
-        
         $('#scanModal').modal('hide');
-        
       } else {
         $('#scanModal').modal('hide');
         Swal.fire({
@@ -1065,8 +1066,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
 
   document.getElementById('startScanBtn').addEventListener('click', () => {
     $('#scanModal').modal('show');
-   
-   
+    
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start({
         facingMode: "environment"

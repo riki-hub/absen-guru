@@ -236,7 +236,8 @@ if (isset($_GET['id'])) {
                                         <h4>Detail Absen</h4>
                                     </div>
                                     <div class="card-body">
-                                    <form action="proses/jam/ubah.php" method="POST">
+                                    <form action="proses/jam/ubah.php" method="POST" enctype="multipart/form-data">
+
     <div class="mb-3 row">
         <label for="name" class="col-sm-3 col-form-label">Nama Guru</label>
         <input type="hidden" name="id" value="<?=$data['id']; ?>">
@@ -289,19 +290,25 @@ if (isset($_GET['id'])) {
                 $jamValue = !empty($data[$jamKey]) ? $data[$jamKey] : "";
 
                 // Cek apakah field sudah terisi, jika ya, buat readonly
-                $readonly = !empty($jamValue) ? "readonly" : "";
 
                 echo '<div class="mb-2 row">';
                 echo "<label class='col-sm-3 col-form-label' for='jam$i'>Jam $i</label>";
                 echo '<div class="col-sm-9">';
-                echo "<input class='form-control' type='text' name='jam$i' id='jam$i' value='$jamValue' $readonly>";
+                echo "<input class='form-control' type='text' name='jam$i' id='jam$i' value='$jamValue'>";
                 echo '</div>';
                 echo '</div>';
             }
             ?>
         </div>
     </div>
-    <input type="hidden" name="photo" value="<?=$data['foto_absen'] ?>" id="">
+    <div class="mb-2 row">
+        <label for="Photo" class="col-sm-3 col-form-label">Photo Guru</label>
+        <div class="col-sm-9">
+            <input type="file" name="photo" class="form-control" value="<?=$data['foto_absen'] ?>" id="Photo">
+
+        </div>
+
+    </div>
 
     <div class="d-flex justify-content-between">
         <span></span>
