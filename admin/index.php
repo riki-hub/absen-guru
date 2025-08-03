@@ -133,67 +133,92 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
       </div>
     </nav>
     <div class="container-fluid page-body-wrapper">
-      <nav class="sidebar sidebar-offcanvas" id="sidebar">
-        <ul class="nav">
-          <li class="nav-item">
-            <a class="nav-link" href="index.php">
-              <i class="ti-home menu-icon"></i>
-              <span class="menu-title">Dashboard</span>
-            </a>
-          </li>
-          <?php if ($_SESSION['username'] != 'admin') : ?>
-  <li class="nav-item">
-    <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
-      <i class="ti-dashboard menu-icon"></i>
-      <span class="menu-title">Data Master</span>
-      <i class="menu-arrow"></i>
-    </a>
-    <div class="collapse" id="ui-basic">
-      <ul class="nav flex-column sub-menu">
-        <li class="nav-item">
-          <a class="nav-link" href="pengguna.php">Data Pengguna</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="guru.php">Data Guru</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="kelas.php">Data Kelas</a>
-        </li>
-      </ul>
-    </div>
-  </li>
-<?php endif; ?>
+     <nav class="sidebar sidebar-offcanvas" id="sidebar">
+  <ul class="nav">
+    <li class="nav-item">
+      <a class="nav-link" href="index.php">
+        <i class="ti-home menu-icon"></i>
+        <span class="menu-title">Dashboard</span>
+      </a>
+    </li>
 
-          <li class="nav-item">
-            <a class="nav-link" data-toggle="collapse" href="#hadir" aria-expanded="false" aria-controls="hadir">
-              <i class="ti-layout-grid2 menu-icon"></i>
-              <span class="menu-title">Data Kehadiran</span>
-              <i class="menu-arrow"></i>
-            </a>
-            <div class="collapse" id="hadir">
-              <ul class="nav flex-column sub-menu">
-                <li class="nav-item">
-                  <a class="nav-link" href="izin.php">Data Izin</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="data.php">Data Hadir</a>
-                </li>
-                <li class="nav-item">
-                  <a class="nav-link" href="data_bulanan.php">Data Hadir Bulanan</a>
-                </li>
-              </ul>
-            </div>
-          </li>
+    <?php if ($_SESSION['username'] != 'admin') : ?>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+          <i class="ti-dashboard menu-icon"></i>
+          <span class="menu-title">Data Master</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="ui-basic">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item">
+              <a class="nav-link" href="pengguna.php">Data Pengguna</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="guru.php">Data Guru</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="kelas.php">Data Kelas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="siswa.php">Data Siswa</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+    <?php endif; ?>
 
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#hadir" aria-expanded="false" aria-controls="hadir">
+        <i class="ti-layout-grid2 menu-icon"></i>
+        <span class="menu-title">Data Kehadiran</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="hadir">
+        <ul class="nav flex-column sub-menu">
           <li class="nav-item">
-            <a class="nav-link" href="logot.php">
-              <i class="fa-solid fa-arrow-right-from-bracket menu-icon"></i>
-              <span class="menu-title">Logout</span>
-            </a>
+            <a class="nav-link" href="izin.php">Data Izin</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="data.php">Data Hadir</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="data_bulanan.php">Data Hadir Bulanan</a>
           </li>
         </ul>
-      </nav>
-      <!-- partial -->
+      </div>
+    </li>
+
+      <!-- Menu Agenda dengan dropdown animasi -->
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="collapse" href="#agenda" aria-expanded="false" aria-controls="agenda">
+          <i class="ti-agenda menu-icon"></i>
+          <span class="menu-title">Data Agenda</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="agenda">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item">
+              <a class="nav-link" href="agenda.php">Agenda Harian</a>
+            </li>
+            <!-- Tambahkan submenu lain di sini jika dibutuhkan -->
+          </ul>
+        </div>
+      </li>
+
+
+    <li class="nav-item">
+      <a class="nav-link" href="logot.php">
+        <i class="fa-solid fa-arrow-right-from-bracket menu-icon"></i>
+        <span class="menu-title">Logout</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+ <!-- partial -->
       <div class="main-panel">
         <div class="content-wrapper">
           <div class="row">

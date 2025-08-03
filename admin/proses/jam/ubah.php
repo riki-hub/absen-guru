@@ -79,9 +79,51 @@ $query .= "WHERE id = '$id'";
 
 // Eksekusi query
 if (mysqli_query($koneksi, $query)) {
-    echo "<script>alert('Data berhasil diperbarui!');window.history.back()</script>";
+    echo "
+        <!DOCTYPE html>
+        <html lang='en'>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>edit jam guru</title>
+            <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+        </head>
+        <body>
+            <script>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Data berhasil di edit',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.href = '../../edit-jam.php?id=$id';
+                });
+            </script>
+        </body>
+        </html>";
 } else {
-    echo "<script>alert('Terjadi kesalahan saat memperbarui data.');window.location='index.php';</script>";
+    echo "
+    <!DOCTYPE html>
+    <html lang='en'>
+    <head>
+        <meta charset='UTF-8'>
+        <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+        <title>edit jam guru</title>
+        <script src='https://cdn.jsdelivr.net/npm/sweetalert2@11'></script>
+    </head>
+    <body>
+       <script>
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Data berhasil di edit',
+                    showConfirmButton: false,
+                    timer: 1500
+                }).then(() => {
+                    window.location.href = '../../edit-jam.php?id=$id';
+                });
+            </script>
+    </body>
+    </html>";
 }
 
 

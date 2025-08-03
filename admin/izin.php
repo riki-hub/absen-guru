@@ -182,6 +182,12 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                                 <li class="nav-item">
                                     <a class="nav-link" href="kelas.php">Data Kelas</a>
                                 </li>
+                                 <li class="nav-item">
+                                    <a class="nav-link" href="siswa.php">Data Siswa</a>
+                                    </li>
+                                      <li class="nav-item">
+              <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
+            </li>
                             </ul>
                         </div>
                     </li>
@@ -206,6 +212,24 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                             </ul>
                         </div>
                     </li>
+
+                    <!-- Menu Agenda dengan dropdown animasi -->
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="collapse" href="#agenda" aria-expanded="false" aria-controls="agenda">
+          <i class="ti-agenda menu-icon"></i>
+          <span class="menu-title">Data Agenda</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="agenda">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item">
+              <a class="nav-link" href="agenda.php">Agenda Harian</a>
+            </li>
+            <!-- Tambahkan submenu lain di sini jika dibutuhkan -->
+          </ul>
+        </div>
+      </li>
+
 
                     <li class="nav-item">
                         <a class="nav-link" href="logot.php">
@@ -322,13 +346,12 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                                 <table class="table table-bordered" id="table" width="100%" cellspacing="0">
                                     <thead style="background-color:blue;color:aliceblue; ">
                                         <tr align="center">
-                                            <th> No </th>
-                                            <th> Tanggal </th>
+                                           <th style= "text-align: center;"> No </th>
+                                            <th style= "text-align: left;"> Tanggal </th>
                                             <th>Nama</th>
-
                                             <th>Keterangan</th>
                                             <th>Status</th>
-                                            <th>Action</th>
+                                            <th style= "text-align: center;"> Action </th>
 
 
                                         </tr>

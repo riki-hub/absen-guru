@@ -10,7 +10,8 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
 date_default_timezone_set('Asia/Jakarta');
 
 // Mendapatkan tanggal hari ini
-$tanggal_hari_ini = date('Y-m-d');
+ // Mengambil tanggal dari form atau default ke bulan lalu
+ $tanggal_hari_ini = isset($_GET['tanggal']) ? $_GET['tanggal'] : date('Y-m-d');
 
 // Query untuk mencari nama guru yang belum absen hari ini
 $sql = "
@@ -216,6 +217,12 @@ while ($row = $result->fetch_assoc()) {
                                 <li class="nav-item">
                                     <a class="nav-link" href="kelas.php">Data Kelas</a>
                                 </li>
+                                 <li class="nav-item">
+                                <a class="nav-link" href="siswa.php">Data Siswa</a>
+                                </li>
+                                  <li class="nav-item">
+              <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
+            </li>
                             </ul>
                         </div>
                     </li>
@@ -240,6 +247,24 @@ while ($row = $result->fetch_assoc()) {
                             </ul>
                         </div>
                     </li>
+
+                    <!-- Menu Agenda dengan dropdown animasi -->
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="collapse" href="#agenda" aria-expanded="false" aria-controls="agenda">
+          <i class="ti-agenda menu-icon"></i>
+          <span class="menu-title">Data Agenda</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="agenda">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item">
+              <a class="nav-link" href="agenda.php">Agenda Harian</a>
+            </li>
+            <!-- Tambahkan submenu lain di sini jika dibutuhkan -->
+          </ul>
+        </div>
+      </li>
+
 
                     <li class="nav-item">
                         <a class="nav-link" href="logot.php">
@@ -434,7 +459,7 @@ while ($row = $result->fetch_assoc()) {
                           <td style="text-align: center;"> <a class="btn btn-primary" href="tambahan.php?id=<?php echo $row['id']; ?>"><i class="fa fa-search" aria-hidden="true"></i></a>
                                                 <?php if ($_SESSION['username'] != 'admin') : ?>
                                                     <a class="btn btn-warning" href="edit-jam.php?id=<?php echo $row['id']; ?>"><i class="fa fa-edit" aria-hidden="true"></i></a>
-                                                    <a class="btn btn-danger" href="proses/data_guru/hapus.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
+                                                    <a class="btn btn-danger" href="proses/data_guru/hapus_absen.php?id=<?php echo $row['id']; ?>" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?');">
     <i class="fa fa-trash" aria-hidden="true"></i> 
 </a>
 

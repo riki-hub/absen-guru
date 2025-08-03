@@ -194,6 +194,9 @@ if (isset($_GET['id'])) {
                                 <li class="nav-item">
                                     <a class="nav-link" href="kelas.php">Data Kelas</a>
                                 </li>
+                                  <li class="nav-item">
+              <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
+            </li>
                             </ul>
                         </div>
                     </li>
@@ -285,7 +288,7 @@ if (isset($_GET['id'])) {
             $isFriday = (date('l') == 'Friday'); // Cek jika hari Jumat
 
             // Membuat input untuk jam kehadiran 1 hingga 10, hanya tampilkan sampai jam 4 jika Jumat
-            for ($i = 1; $i <= ($isFriday ? 5 : 10); $i++) {
+            for ($i = 1; $i <= ($isFriday ? 6 : 10); $i++) {
                 $jamKey = "jam$i";
                 $jamValue = !empty($data[$jamKey]) ? $data[$jamKey] : "";
 
@@ -312,7 +315,7 @@ if (isset($_GET['id'])) {
 
     <div class="d-flex justify-content-between">
         <span></span>
-        <button onclick="history.back()" type="button" class="btn btn-secondary">Kembali</button>
+        <a href="data.php" class="btn btn-secondary">kembali</a>
         <button type="submit" class="btn btn-primary">Simpan</button>
     </div>
 </form>

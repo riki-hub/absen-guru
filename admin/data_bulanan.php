@@ -183,6 +183,12 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                                 <li class="nav-item">
                                     <a class="nav-link" href="kelas.php">Data Kelas</a>
                                 </li>
+                                 <li class="nav-item">
+                                <a class="nav-link" href="siswa.php">Data Siswa</a>
+                                </li>
+                                  <li class="nav-item">
+              <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
+            </li>
                             </ul>
                         </div>
                     </li>
@@ -207,6 +213,24 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                             </ul>
                         </div>
                     </li>
+
+                    <!-- Menu Agenda dengan dropdown animasi -->
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="collapse" href="#agenda" aria-expanded="false" aria-controls="agenda">
+          <i class="ti-agenda menu-icon"></i>
+          <span class="menu-title">Data Agenda</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="agenda">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item">
+              <a class="nav-link" href="agenda.php">Agenda Harian</a>
+            </li>
+            <!-- Tambahkan submenu lain di sini jika dibutuhkan -->
+          </ul>
+        </div>
+      </li>
+
 
                     <li class="nav-item">
                         <a class="nav-link" href="logot.php">
@@ -272,7 +296,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                         </form>
                     </div>
                 </div>
-                    
+            
             </div>
             <div class="modal fade" id="cropperModal" tabindex="-1" role="dialog" aria-labelledby="cropperModalLabel" aria-hidden="true">
                 <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
@@ -305,13 +329,15 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                     <div class="card shadow mb-4">
                         <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 font-weight-bold text-primary">Data Hadir</h6>
-                            <div class="d-flex">
-                                <form method="POST" action="proses/cetak/hadir_bulanan.php">
-                                    <input type="hidden" name="startDate" value="<?= isset($_POST['startDate']) ? $_POST['startDate'] : date('Y-m-01') ?>">
-                                    <input type="hidden" name="endDate" value="<?= isset($_POST['endDate']) ? $_POST['endDate'] : date('Y-m-t') ?>">
-                                    <button type="submit" class="btn btn-success btn-sm">Cetak Data</button>
-                                </form>
-                            </div>
+                           <div class="d-flex">
+                            <form method="POST" action="proses/cetak/hadir_bulanan.php">
+                                <input type="hidden" name="startDate" value="<?= date('Y-m-d') ?>">
+                                <input type="hidden" name="endDate" value="<?= date('Y-m-t') ?>">
+                                <button type="submit" class="btn btn-primary btn-sm">
+                                    <i class="fas fa-print"></i> Cetak Data
+                                </button>
+                            </form>
+                        </div>
                         </div>
                         <div class="card-body">
                             <form method="POST" action="">
@@ -330,83 +356,94 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                                 </div>
                             </form>
                             <div class="table-responsive">
-                                <table class="table table-bordered" width="100%" cellspacing="0">
-                                    <thead style="background-color:blue;color:aliceblue;">
-                                        <tr align="center">
-                                            <th>No</th>
-                                            <th>Nama Guru</th>
-                                            <?php
-                                            include('../koneksi.php');
+                            <table class="table table-bordered" width="100%" cellspacing="0">
+    <thead style="background-color:blue; color:aliceblue;">
+        <tr align="center">
+            <th>No</th>
+            <th>Nama Guru</th>
+            <?php
+            include('../koneksi.php');
 
-                                            // Dapatkan tanggal awal dan akhir dari input atau default ke 1 bulan
-                                            $startDate = isset($_POST['startDate']) ? $_POST['startDate'] : date('Y-m-01');
-                                            $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : date('Y-m-t');
+            // Dapatkan tanggal awal dan akhir dari input atau default ke 1 bulan
+            $startDate = isset($_POST['startDate']) ? $_POST['startDate'] : date('Y-m-01');
+            $endDate = isset($_POST['endDate']) ? $_POST['endDate'] : date('Y-m-t');
 
-                                            // Cari tanggal dengan data (dengan menggunakan BETWEEN dan kolom jam)
-                                            $queryDates = "SELECT DISTINCT tanggal 
-                                       FROM absen_msk 
-                                       WHERE tanggal BETWEEN '$startDate' AND '$endDate'
-                                       AND (jam1 IS NOT NULL OR jam2 IS NOT NULL OR jam3 IS NOT NULL OR jam4 IS NOT NULL OR
-                                            jam5 IS NOT NULL OR jam6 IS NOT NULL OR jam7 IS NOT NULL OR jam8 IS NOT NULL OR
-                                            jam9 IS NOT NULL OR jam10 IS NOT NULL)
-                                       ORDER BY tanggal ASC";
-                                            $resultDates = mysqli_query($koneksi, $queryDates);
-                                            if (!$resultDates) {
-                                                die("Query error: " . mysqli_error($koneksi));
-                                            }
+            // Ambil tanggal yang memiliki data
+            $queryDates = "SELECT DISTINCT tanggal 
+                           FROM absen_msk 
+                           WHERE tanggal BETWEEN '$startDate' AND '$endDate'
+                           AND (jam1 IS NOT NULL OR jam2 IS NOT NULL OR jam3 IS NOT NULL OR jam4 IS NOT NULL OR
+                                jam5 IS NOT NULL OR jam6 IS NOT NULL OR jam7 IS NOT NULL OR jam8 IS NOT NULL OR
+                                jam9 IS NOT NULL OR jam10 IS NOT NULL)
+                           ORDER BY tanggal ASC";
+            $resultDates = mysqli_query($koneksi, $queryDates);
+            if (!$resultDates) {
+                die("Query error: " . mysqli_error($koneksi));
+            }
 
-                                            $filteredDates = [];
-                                            while ($rowDate = mysqli_fetch_assoc($resultDates)) {
-                                                $filteredDates[] = $rowDate['tanggal'];
-                                                echo "<th>{$rowDate['tanggal']}</th>";
-                                            }
-                                            ?>
-                                            <th>Total Jam</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        // Query untuk mendapatkan daftar guru
-                                        $queryGuru = "SELECT DISTINCT nama FROM absen_msk ORDER BY nama ASC";
-                                        $resultGuru = mysqli_query($koneksi, $queryGuru);
-                                        if (!$resultGuru) {
-                                            die("Query error: " . mysqli_error($koneksi));
-                                        }
+            $filteredDates = [];
+            while ($rowDate = mysqli_fetch_assoc($resultDates)) {
+                $filteredDates[] = $rowDate['tanggal'];
+                echo "<th>{$rowDate['tanggal']}</th>";
+            }
+            ?>
+            <th>Total Jam</th>
+            <th>Action</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php
+        // Ambil daftar nama guru unik
+        $queryGuru = "SELECT DISTINCT nama FROM absen_msk ORDER BY nama ASC";
+        $resultGuru = mysqli_query($koneksi, $queryGuru);
+        if (!$resultGuru) {
+            die("Query error: " . mysqli_error($koneksi));
+        }
 
-                                        $no = 1;
-                                        while ($rowGuru = mysqli_fetch_assoc($resultGuru)) {
-                                            $namaGuru = $rowGuru['nama'];
-                                            $totalJamMengajar = 0; // Inisialisasi total jam untuk setiap guru
-                                            $dataRow = "<tr align='center'><td>$no</td><td>$namaGuru</td>";
+        $no = 1;
+        while ($rowGuru = mysqli_fetch_assoc($resultGuru)) {
+            $namaGuru = $rowGuru['nama'];
+            $totalJamMengajar = 0;
+            $dataRow = "<tr align='center'>";
+            $dataRow .= "<td>$no</td>";
+            $dataRow .= "<td>$namaGuru</td>";
 
-                                            foreach ($filteredDates as $date) {
-                                                // Query untuk menghitung jumlah banyak jam yang diisi pada tanggal tertentu
-                                                $queryJam = "SELECT jam1, jam2, jam3, jam4, jam5, jam6, jam7, jam8, jam9, jam10 
-                                         FROM absen_msk 
-                                         WHERE nama = '$namaGuru' AND tanggal = '$date'";
-                                                $resultJam = mysqli_query($koneksi, $queryJam);
-                                                $jamCount = 0;
+            foreach ($filteredDates as $date) {
+                $queryJam = "SELECT jam1, jam2, jam3, jam4, jam5, jam6, jam7, jam8, jam9, jam10 
+                             FROM absen_msk 
+                             WHERE nama = '$namaGuru' AND tanggal = '$date'";
+                $resultJam = mysqli_query($koneksi, $queryJam);
+                $jamCount = 0;
 
-                                                if ($resultJam->num_rows > 0) {
-                                                    $rowJam = mysqli_fetch_assoc($resultJam);
-                                                    foreach ($rowJam as $jam) {
-                                                        if (!empty($jam)) { // Jika jam tidak kosong, hitung sebagai 1
-                                                            $jamCount++;
-                                                        }
-                                                    }
-                                                }
+                if ($resultJam->num_rows > 0) {
+                    $rowJam = mysqli_fetch_assoc($resultJam);
+                    foreach ($rowJam as $jam) {
+                        if (!empty($jam)) {
+                            $jamCount++;
+                        }
+                    }
+                }
 
-                                                $dataRow .= "<td>$jamCount</td>";
-                                                $totalJamMengajar += $jamCount; // Tambahkan jumlah jam per tanggal ke total
-                                            }
+                $dataRow .= "<td>$jamCount</td>";
+                $totalJamMengajar += $jamCount;
+            }
 
-                                            $dataRow .= "<td><strong>$totalJamMengajar</strong></td></tr>";
-                                            echo $dataRow;
-                                            $no++;
-                                        }
-                                        ?>
-                                    </tbody>
-                                </table>
+            $dataRow .= "<td><strong>$totalJamMengajar</strong></td>";
+            $dataRow .= "<td>
+                <a class='btn btn-danger' href='proses/data_guru/hapus_absen_bulanan.php?nama=" . urlencode($namaGuru) . "' 
+                   onclick=\"return confirm('Apakah Anda yakin ingin menghapus semua data absensi $namaGuru?');\">
+                    <i class='fa fa-trash' aria-hidden='true'></i>
+                </a>
+            </td>";
+            $dataRow .= "</tr>";
+
+            echo $dataRow;
+            $no++;
+        }
+        ?>
+    </tbody>
+</table>
+
                             </div>
                         </div>
                     </div>
@@ -422,14 +459,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
 
             </div>
             <!-- content-wrapper ends -->
-            <!-- partial:partials/_footer.html -->
-            <footer class="footer">
-                <div class="d-sm-flex justify-content-center justify-content-sm-between">
-                    <span class="text-muted text-center text-sm-left d-block d-sm-inline-block">Copyright © 2024
-                        <a href="https://www.templatewatch.com/" target="_blank">Tim RPL</a>. All rights reserved.</span>
-
-                </div>
-            </footer>
+           
             <!-- partial -->
         </div>
         <!-- main-panel ends -->

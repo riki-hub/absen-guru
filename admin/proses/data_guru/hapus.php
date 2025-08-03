@@ -21,7 +21,7 @@ if (isset($_GET['id'])) {
     $id = $_GET['id']; // Ambil ID dari URL
 
     // Query untuk menghapus data berdasarkan ID
-    $sql = "DELETE FROM absen_msk WHERE id = ?";
+    $sql = "DELETE FROM akun_guru WHERE id = ?";
     $stmt = $koneksi->prepare($sql);
 
     if ($stmt === false) {

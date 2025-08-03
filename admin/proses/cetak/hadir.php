@@ -113,12 +113,11 @@ $sheet->setTitle('Absen Guru');
 // Set active sheet index to the first sheet, so Excel opens this as the first sheet
 $spreadsheet->setActiveSheetIndex(0);
 
-// Get the current date
-$date = date('d-m-Y');
+
 
 // Redirect output to a client’s web browser (Xlsx)
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header('Content-Disposition: attachment;filename="Data absen ' . $date . '.xlsx"');
+header('Content-Disposition: attachment;filename="Data absen ' . $tanggal . '.xlsx"');
 header('Cache-Control: max-age=0');
 header('Cache-Control: max-age=1'); // If you're serving to IE 9, then the following may be needed
 header('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past

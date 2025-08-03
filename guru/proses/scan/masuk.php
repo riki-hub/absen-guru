@@ -29,6 +29,8 @@ $photoData = $_POST['photo'];
 
 
 
+
+
 $kec = "Terakhir absen di kelas ,$kelas";
 if (!empty($photoData)) {
     $folderPath = "../../../absen/";
@@ -101,7 +103,7 @@ if ($hari == 'Monday') { // Logika khusus untuk hari Senin
         $kolom_jam = 'jam8';
     } else if (($jam == 13 && $menit >= 40) || ($jam == 14 && $menit < 10)) {
         $kolom_jam = 'jam9';
-    } else if ($jam == 14 && $menit < 45) {
+    } else if ($jam == 14 && $menit < 30) {
         $kolom_jam = 'jam10';
     }
 }

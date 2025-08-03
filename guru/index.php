@@ -26,6 +26,8 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard | Guru</title>
   <link rel="shortcut icon" href="../images/favicon.png" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
   <script src="../js/html5-qrcode.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
   <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
@@ -43,6 +45,20 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
 
     .container {
       padding: 20px;
+    }
+     #map-frame {
+      width: 100%;
+      height: 200px; /* Lebih dalam */
+      border: 1px solid #ccc;
+      border-radius: 8px;
+    }
+    .location-box {
+      max-width: 600px;
+      margin: 30px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      background-color: #f9f9f9;
     }
 
     index-btn {
@@ -272,18 +288,45 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
     }
 
     .history {
-      background: #fff;
-      padding: 15px;
-      border-radius: 10px;
-      margin-top: 15px;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
+  background: #fff;
+  padding: 15px;
+  border-radius: 10px;
+  margin-top: 15px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
 
-    .history p {
-      margin: 0;
-      font-size: 16px;
-      color: #333;
-    }
+.history .d-flex {
+  display: flex;
+  flex-direction: row; /* Horizontal layout by default */
+  gap: 4px; /* Space between cards */
+  flex-wrap: wrap; /* Allow wrapping if needed */
+}
+
+.history .card {
+  width: 120px; /* Default width for larger screens */
+  text-align: center;
+}
+
+.history .card-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Media query for smaller screens (e.g., mobile devices) */
+@media (max-width: 600px) {
+  .history .d-flex {
+    flex-direction: column; /* Stack vertically on small screens */
+    align-items: center; /* Center cards */
+  }
+
+  .history .card {
+    width: 100%; /* Full width for cards on small screens */
+    max-width: 300px; /* Optional: limit max width for better appearance */
+    margin-bottom: 15px; /* Space between stacked cards */
+  }
+}
 
     .footer {
       display: flex;
@@ -349,17 +392,20 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
       color: #333;
       margin-top: 15px;
     }
+
     .logout-button:hover {
       background-color: #fff;
-      color : red ;
+      color: red;
     }
+
     .profile p {
-      color: black ;
+      color: black;
       text-decoration: none;
 
     }
+
     .profile p:hover {
-     color : white;
+      color: white;
     }
   </style>
 </head>
@@ -376,6 +422,17 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
     </a>
   </div>
   <div class="content">
+      <div class="project">
+      <div class="location-box d-flex flex-column gap-3">
+        <div class="d-flex align-items-center gap-2">
+          <img src="https://cdn-icons-png.flaticon.com/512/684/684908.png" width="24" height="24" alt="Ikon Lokasi">
+          <strong>Lokasi Anda:</strong>
+        </div>
+        <p id="location-text" class="mb-0 text-muted">Menunggu lokasi...</p>
+        <p id="coordinates" class="mb-0 text-muted"></p>
+        <iframe id="map-frame" src="" allowfullscreen loading="lazy"></iframe>
+      </div>
+</div>
     <div class="project">
       <p id="dayDisplay"></p>
       <div class="attendance">
@@ -395,28 +452,60 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
         </div>
       </div>
     </div>
-    <div class="history">
-      <div class="d-flex flex-row gap-3">
-        <div class="">
-          <a style="text-decoration: none;" href="tambahan.php?id=<?= $_SESSION['user_id'] ?>">
-            <div class="card text-center" style="width: 120px;">
-              <div class="card-body d-flex flex-column align-items-center justify-content-center">
-                <i class="fa fa-receipt fa-4x" style="color: #b8d9ff;"></i>
-                <h5 class="card-title mt-3">Riwayat</h5>
-              </div>
-            </div>
-          </a>
+   <div class="history">
+  <div class="d-flex flex-row gap-4">
+    <!-- Kotak Riwayat 1 -->
+    <div>
+      <a style="text-decoration: none;" href="tambahan.php?id=<?= $_SESSION['user_id'] ?>">
+        <div class="card text-center" style="width: 120px;">
+          <div class="card-body d-flex flex-column align-items-center justify-content-center">
+            <i class="fa fa-receipt fa-4x" style="color: #b8d9ff;"></i>
+            <h5 class="card-title mt-3">Riwayat</h5>
+          </div>
         </div>
-        <span style="color:transparent">ao</span>
-      </div>
+      </a>
     </div>
 
+    <!-- Kotak Riwayat 2 -->
+    <div>
+      <a style="text-decoration: none;" href="t_agenda.php?id=<?= $_SESSION['user_id'] ?>">
+        <div class="card text-center" style="width: 120px;">
+          <div class="card-body d-flex flex-column align-items-center justify-content-center">
+            <i class="fa fa-receipt fa-4x" style="color: #b8d9ff;"></i>
+            <h5 class="card-title mt-3">Absensi Siswa</h5>
+          </div>
+        </div>
+      </a>
+    </div>
 
+     <!-- Kotak Riwayat 3 -->
+    <div>
+      <a style="text-decoration: none;" href="tsiswa.php?id=<?= $_SESSION['user_id'] ?>">
+        <div class="card text-center" style="width: 120px;">
+          <div class="card-body d-flex flex-column align-items-center justify-content-center">
+            <i class="fa fa-receipt fa-4x" style="color: #b8d9ff;"></i>
+            <h5 class="card-title mt-3">Rekap Absensi</h5>
+          </div>
+        </div>
+      </a>
+    </div>
+
+     <!-- Kotak Riwayat 4 -->
+    <div>
+      <a style="text-decoration: none;" href="t_nilai_siswa.php?id=<?= $_SESSION['user_id'] ?>">
+        <div class="card text-center" style="width: 120px;">
+          <div class="card-body d-flex flex-column align-items-center justify-content-center">
+            <i class="fa fa-receipt fa-4x" style="color: #b8d9ff;"></i>
+            <h5 class="card-title mt-3">Nilai Siswa</h5>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    
   </div>
-
-
-
-
+</div>
+  </div>
   </div>
   <div class="footer">
     <div>
@@ -484,10 +573,10 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
               <input class="form-control" type="text" name="beda" id="tanggal" readonly>
             </div>
           </div>
-          
 
 
-           <a class="btn btn-primary" id="startKamera" onclick="startCamera()">Mulai Kamera</a>
+
+          <a class="btn btn-primary" id="startKamera" onclick="startCamera()">Mulai Kamera</a>
           <video id="video" autoplay style="display:none; width: 100%; height: auto;"></video>
           <canvas id="canvas" style="display:none; width: 100%; height: auto;"></canvas>
 
@@ -495,13 +584,46 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
           <input type="hidden" name="photo" id="photo">
       </div>
       <div class="modal-footer">
-  <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-  <button type="submit" class="btn btn-primary" id="btn-masuk" style="display: none;" onclick="takePicture()">Masuk</button>
-</div>
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        <button type="submit" class="btn btn-primary" id="btn-masuk" style="display: none;" onclick="takePicture()">Masuk</button>
+      </div>
       </form>
     </div>
   </div>
 </div>
+
+<script>
+  function showLocation(position) {
+    const lat = position.coords.latitude;
+    const lon = position.coords.longitude;
+
+    // Koordinat
+    document.getElementById('coordinates').textContent = `Latitude: ${lat}, Longitude: ${lon}`;
+
+    // Alamat (reverse geocoding)
+    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+      .then(response => response.json())
+      .then(data => {
+        const address = data.display_name || 'Alamat tidak ditemukan';
+        document.getElementById('location-text').textContent = address;
+      });
+
+    // Tampilkan di peta menggunakan OpenStreetMap iframe
+    const mapURL = `https://www.openstreetmap.org/export/embed.html?bbox=${lon-0.005}%2C${lat-0.005}%2C${lon+0.005}%2C${lat+0.005}&layer=mapnik&marker=${lat}%2C${lon}`;
+    document.getElementById('map-frame').src = mapURL;
+  }
+
+  function showError(error) {
+    const locText = document.getElementById('location-text');
+    locText.textContent = "Gagal mendapatkan lokasi pengguna.";
+  }
+
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(showLocation, showError);
+  } else {
+    document.getElementById('location-text').textContent = "Geolokasi tidak didukung di browser ini.";
+  }
+</script>
 
 <script>
   function updateAttendance() {
@@ -740,8 +862,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
   function startCamera() {
     const btnMasuk = document.getElementById('btn-masuk');
 
-// Tampilkan tombol "Masuk"
-
     navigator.mediaDevices.getUserMedia({
         video: true
       })
@@ -751,7 +871,6 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
         snapButton.style.display = 'inline';
         btnMasuk.style.display = 'inline-block';
 
-        // Update canvas size to match video size
         video.onloadedmetadata = () => {
           canvas.width = video.videoWidth;
           canvas.height = video.videoHeight;
@@ -763,10 +882,22 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
   }
 
   function takePicture() {
-    // Use dynamic size based on the actual video size
     context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    // Tambahkan timestamp dan tulisan "Smk Madya Depok"
+    const now = new Date();
+    const timestamp = now.toLocaleString(); // Format: tgl dan jam lokal
+
+    context.font = "20px Arial";
+    context.fillStyle = "white";
+    context.textAlign = "right";
+
+    // Teks di pojok kanan bawah
+    context.fillText("Smk Madya Depok", canvas.width - 10, canvas.height - 30);
+    context.fillText(timestamp, canvas.width - 10, canvas.height - 10);
+
     const dataURL = canvas.toDataURL('image/png');
-    photoInput.value = dataURL; // Save the image as a base64 string
+    photoInput.value = dataURL;
     video.style.display = 'none';
     canvas.style.display = 'block';
     stopCamera();
@@ -790,9 +921,9 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
     }
   }
 
-  // Get location automatically when page loads
   window.onload = getLocation;
 </script>
+
 
 <script>
   let html5QrCode;
@@ -803,7 +934,19 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
     const currentDay = currentDate.getDay();
     const currentHour = currentDate.getHours();
     const currentMinute = currentDate.getMinutes();
-    const timestamp = currentDate.toLocaleTimeString();
+     //const timestamp = currentDate.toLocaleTimeString();
+     
+     const now = new Date();
+
+// Ambil jam, menit, dan detik
+const hours = String(now.getHours()).padStart(2, '0'); // Jam 24 jam
+const minutes = String(now.getMinutes()).padStart(2, '0');
+const seconds = String(now.getSeconds()).padStart(2, '0');
+
+// Format ke dalam bentuk HH.MM.SS WIB
+const timestamp = `${hours}.${minutes}.${seconds}`;
+
+console.log(timestamp);
     if (currentDay === 0 || currentDay === 6) {
       $('#scanModal').modal('hide'); // 0 = Minggu, 6 = Sabtu
       Swal.fire({
@@ -834,15 +977,15 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
       document.getElementById('kelas').value = decodedText;
 
       if (currentDay === 1) { // Senin
-        if (currentHour === 8 && currentMinute >= 0 && currentMinute < 30) {
-          jamAbsen = 1; // 08:00 - 08:35
-        } else if ((currentHour === 8 && currentMinute >= 35) || (currentHour === 9 && currentMinute < 5)) {
-          jamAbsen = 2; // 08:35 - 09:10
-        } else if (currentHour === 9 && currentMinute >= 10 && currentMinute < 40) {
-          jamAbsen = 3; // 09:10 - 09:45
-        } else if ((currentHour === 9 && currentMinute >= 45) || (currentHour === 10 && currentMinute < 15)) {
-          jamAbsen = 4; // 09:45 - 10:20
-        } else if (currentHour === 10 && currentMinute >= 20 && currentMinute < 50) {
+        if (currentHour == 8 && currentMinute >= 0 && currentMinute < 15) {
+          jamAbsen = 1; // 08:00 - 08:15
+        } else if (currentHour == 8 && currentMinute >= 35 && currentMinute < 50) {
+          jamAbsen = 2; // 08:35 - 08:50
+        } else if (currentHour == 9 && currentMinute >= 10 && currentMinute < 25) {
+          jamAbsen = 3; // 09:10 - 09:25
+        } else if (currentHour === 9 && currentMinute >= 45 && currentMinute < 60) {
+          jamAbsen = 4; // 09:45 - 10:00
+        } else if (currentHour === 10 && currentMinute >= 15 && currentMinute < 20) {
           $('#scanModal').modal('hide');
           jamAbsen = "Istirahat 1"; // 10:20 - 10:50 Istirahat 1
           Swal.fire({
@@ -854,13 +997,13 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
               window.location.href = "index.php";
             }
           });
-        } else if ((currentHour === 10 && currentMinute >= 50) || (currentHour === 11 && currentMinute < 20)) {
-          jamAbsen = 5; // 10:50 - 11:25
-        } else if (currentHour === 11 && currentMinute >= 25 && currentMinute < 55) {
-          jamAbsen = 6; // 11:25 - 12:00
+        } else if ((currentHour === 10 && currentMinute >= 50) || (currentHour === 11 && currentMinute < 5)) {
+          jamAbsen = 5; // 10:50 - 11:05
+        } else if ((currentHour === 11 && currentMinute >= 25 && currentMinute < 40)) {
+          jamAbsen = 6; // 11:25 - 11:40
         } else if (currentHour === 12 && currentMinute >= 0 && currentMinute < 30) {
           $('#scanModal').modal('hide');
-          jamAbsen = "Istirahat 2"; // 12:00 - 12:30 Istirahat 2
+          jamAbsen = "Istirahat 2"; // 12:00 - 12:30
           Swal.fire({
             title: 'Waktu Istirahat',
             text: 'Sekarang waktu istirahat 2!',
@@ -870,21 +1013,32 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
               window.location.href = "index.php";
             }
           });
-        } else if (currentHour === 12 && currentMinute >= 30 && currentMinute < 60) {
-          jamAbsen = 7; // 12:30 - 13:05
-        } else if (currentHour === 13 && currentMinute >= 5 && currentMinute < 35) {
-          jamAbsen = 8; // 13:05 - 13:40
-        } else if ((currentHour === 13 && currentMinute >= 40) || (currentHour === 14 && currentMinute < 10)) {
-          jamAbsen = 9; // 13:40 - 14:15
-        } else if (currentHour === 14 && currentMinute >= 15 && currentMinute < 45) {
-          jamAbsen = 10; // 14:15 - 14:50
+        } else if (currentHour === 12 && currentMinute >= 30 && currentMinute < 45) {
+          jamAbsen = 7; // 12:30 - 12:45
+        } // Jam 8: 13:05 - 13:20
+        else if (currentHour === 13 && currentMinute >= 5 && currentMinute < 20) {
+          jamAbsen = 8; // 13:05 - 13:20
         }
+
+        // Jam 9: 13:40 - 13:55
+        else if (currentHour === 13 && currentMinute >= 40 && currentMinute < 55) {
+          jamAbsen = 9; // 13:40 - 13:55
+        }
+
+
+        // Jam 10: 14:15 - 14:30
+        else if (currentHour === 14 && currentMinute >= 15 && currentMinute < 30) {
+          jamAbsen = 10; // 14:15 - 14:30
+        }
+
+
+
       } else if (currentDay === 5) { // Jumat
         if ((currentHour === 7 && currentMinute >= 45) || (currentHour === 8 && currentMinute < 15)) {
           jamAbsen = 1; // 07:45 - 08:19
-        } else if ((currentHour === 8 && currentMinute >= 20) && (currentHour === 8 && currentMinute < 50)) {
+        } else if ((currentHour === 8 && currentMinute >= 20) && (currentHour === 8 && currentMinute < 35)) {
           jamAbsen = 2; // 08:20 - 08:54
-        } else if ((currentHour === 8 && currentMinute >= 55) || (currentHour === 9 && currentMinute < 25)) {
+        } else if ((currentHour === 8 && currentMinute >= 55) || (currentHour === 9 && currentMinute < 10)) {
           jamAbsen = 3; // 08:55 - 09:29
         } else if ((currentHour === 9 && currentMinute >= 30) && (currentHour === 9 && currentMinute < 45)) {
           $('#scanModal').modal('hide'); // Menyembunyikan modal
@@ -898,25 +1052,27 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
               window.location.href = "index.php";
             }
           });
-        } else if ((currentHour === 9 && currentMinute >= 50) || (currentHour === 10 && currentMinute < 20)) {
+        } else if ((currentHour === 9 && currentMinute >= 50) || (currentHour === 10 && currentMinute < 5)) {
           jamAbsen = 4; // 09:50 - 10:24
-        } else if (currentHour === 10 && currentMinute >= 25 && currentMinute < 55) {
+        } else if (currentHour === 10 && currentMinute >= 25 && currentMinute < 40) {
           jamAbsen = 5; // 10:25 - 11:00
-        } else if ((currentHour === 11 && currentMinute >= 0) && (currentHour === 11 && currentMinute < 30)) {
+        } else if ((currentHour === 11 && currentMinute >= 0) && (currentHour === 11 && currentMinute < 15)) {
           jamAbsen = 6; // 11:00 - 11:35
         }
 
 
       } else { // Selasa sampai Kamis
         const currentTimeInMinutes = currentHour * 60 + currentMinute;
+        
 
-        if (currentTimeInMinutes >= 450 && currentTimeInMinutes < 480) { // 07:30 - 08:05
+
+        if (currentTimeInMinutes >= 450 && currentTimeInMinutes < 465) { // 07:30 - 08:05
           jamAbsen = 1;
-        } else if (currentTimeInMinutes >= 485 && currentTimeInMinutes < 515) { // 08:05 - 08:40
+        } else if (currentTimeInMinutes >= 485 && currentTimeInMinutes < 500) { // 08:05 - 08:40
           jamAbsen = 2;
-        } else if (currentTimeInMinutes >= 520 && currentTimeInMinutes < 550) { // 08:40 - 09:15
+        } else if (currentTimeInMinutes >= 520 && currentTimeInMinutes < 535) { // 08:40 - 09:15
           jamAbsen = 3;
-        } else if (currentTimeInMinutes >= 555 && currentTimeInMinutes < 585) { // 09:15 - 09:50
+        } else if (currentTimeInMinutes >= 555 && currentTimeInMinutes < 570) { // 09:15 - 09:50
           jamAbsen = 4;
         } else if (currentTimeInMinutes >= 590 && currentTimeInMinutes < 620) { // 09:50 - 10:25
           $('#scanModal').modal('hide');
@@ -930,11 +1086,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
               window.location.href = "index.php";
             }
           });
-        } else if (currentTimeInMinutes >= 625 && currentTimeInMinutes < 655) { // 10:25 - 11:00
+        } else if (currentTimeInMinutes >= 625 && currentTimeInMinutes < 640) { // 10:25 - 11:00
           jamAbsen = 5;
-        } else if (currentTimeInMinutes >= 660 && currentTimeInMinutes < 690) { // 11:00 - 11:35
+        } else if (currentTimeInMinutes >= 660 && currentTimeInMinutes < 675) { // 11:00 - 11:35
           jamAbsen = 6;
-        } else if (currentTimeInMinutes >= 695 && currentTimeInMinutes < 725) { // 11:35 - 12:10
+        } else if (currentTimeInMinutes >= 695 && currentTimeInMinutes < 710) { // 11:35 - 12:10
           jamAbsen = 7;
         } else if (currentTimeInMinutes >= 730 && currentTimeInMinutes < 760) { // 12:10 - 12:45
           $('#scanModal').modal('hide');
@@ -948,11 +1104,11 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
               window.location.href = "index.php";
             }
           });
-        } else if (currentTimeInMinutes >= 765 && currentTimeInMinutes < 795) { // 12:45 - 13:20
+        } else if (currentTimeInMinutes >= 765 && currentTimeInMinutes < 780) { // 12:45 - 13:20
           jamAbsen = 8;
-        } else if (currentTimeInMinutes >= 800 && currentTimeInMinutes < 830) { // 13:20 - 13:55
+        } else if (currentTimeInMinutes >= 800 && currentTimeInMinutes < 815) { // 13:20 - 13:55
           jamAbsen = 9;
-        } else if (currentTimeInMinutes >= 835 && currentTimeInMinutes < 865) { // 13:55 - 14:30
+        } else if (currentTimeInMinutes >= 835 && currentTimeInMinutes < 850) { // 13:55 - 14:30
           jamAbsen = 10;
         }
 
@@ -1066,7 +1222,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
 
   document.getElementById('startScanBtn').addEventListener('click', () => {
     $('#scanModal').modal('show');
-    
+
     html5QrCode = new Html5Qrcode("reader");
     html5QrCode.start({
         facingMode: "environment"
