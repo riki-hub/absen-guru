@@ -166,6 +166,9 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
             <li class="nav-item">
               <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="location.php">Location</a>
+            </li>
           </ul>
         </div>
       </li>

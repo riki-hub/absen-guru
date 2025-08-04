@@ -132,32 +132,37 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                             <span class="menu-title">Dashboard</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
-                            <i class="ti-dashboard menu-icon"></i>
-                            <span class="menu-title">Data Master</span>
-                            <i class="menu-arrow"></i>
-                        </a>
-                        <div class="collapse" id="ui-basic">
-                            <ul class="nav flex-column sub-menu">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="pengguna.php">Data Pengguna</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="guru.php">Data Guru</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="kelas.php">Data Kelas</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="siswa.php">Data Siswa</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
+                    <?php if ($_SESSION['username'] != 'admin') : ?>
+                        <li class="nav-item">
+                            <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+                                <i class="ti-dashboard menu-icon"></i>
+                                <span class="menu-title">Data Master</span>
+                                <i class="menu-arrow"></i>
+                            </a>
+                            <div class="collapse" id="ui-basic">
+                                <ul class="nav flex-column sub-menu">
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="pengguna.php">Data Pengguna</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="guru.php">Data Guru</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="kelas.php">Data Kelas</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="siswa.php">Data Siswa</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
+                                    </li>
+                                    <li class="nav-item">
+                                        <a class="nav-link" href="location.php">Location</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </li>
+                    <?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link" data-toggle="collapse" href="#hadir" aria-expanded="false" aria-controls="hadir">
                             <i class="ti-layout-grid2 menu-icon"></i>
@@ -238,7 +243,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                                                 <td style="text-align: center;"><?php echo $no; ?></td>
                                                 <td><?php echo $row['mata_pelajaran']; ?></td>
                                                 <td style="text-align: center;">
-                                                    <button class="btn btn-warning" style="font-size: 20px;" data-id="<?php echo $row['id']; ?>" data-nama="<?php echo htmlspecialchars($row['mata_pelajaran']); ?>" data-toggle="modal" data-target="#editModal">
+                                                    <button class="btn btn-warning" style="font-size: 20px;" data-toggle="modal" data-target="#editModal" data-id="<?php echo $row['id']; ?>" data-nama="<?php echo htmlspecialchars($row['mata_pelajaran']); ?>">
                                                         <i class="fa-regular fa-pen-to-square"></i>
                                                     </button>
                                                     <a title="hapus" class="btn btn-danger delete-btn" style="font-size: 20px;" data-id="<?php echo $row['id']; ?>"><i class="fa-solid fa-trash-can"></i></a>
@@ -295,7 +300,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                                 </button>
                             </div>
                             <div class="modal-body">
-                                <form class="needs-validation" action="proses/mapel/edit.php" method="post" id="editForm">
+                                <form class="needs-validation" action="proses/mapel/edit.php" method="post" id="editForm" novalidate>
                                     <input type="hidden" name="id" id="editId">
                                     <div class="row">
                                         <div class="col-md-12 mb-3">
@@ -366,8 +371,8 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                 $(this).addClass('was-validated');
             });
 
-            // Isi modal edit dengan data
-            $('.btn-warning').on('click', function() {
+            // Isi modal edit dengan data menggunakan event delegation
+            $(document).on('click', '.btn-warning', function() {
                 const id = $(this).data('id');
                 const nama = $(this).data('nama');
                 $('#editId').val(id);
@@ -376,7 +381,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
             });
 
             // Hapus data
-            $('.delete-btn').on('click', function(e) {
+            $(document).on('click', '.delete-btn', function(e) {
                 e.preventDefault();
                 const id = $(this).data('id');
                 const swalWithBootstrapButtons = Swal.mixin({
@@ -389,7 +394,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
 
                 swalWithBootstrapButtons.fire({
                     title: "Anda yakin?",
-                    text: "Anda akan menghapus data ini!",
+                    text: "Anda akan menghapus data mata pelajaran ini!",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: "Iya, hapus!",
@@ -406,7 +411,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                             if (response.ok) {
                                 swalWithBootstrapButtons.fire({
                                     title: "Terhapus!",
-                                    text: "Sukses menghapus data!.",
+                                    text: "Sukses menghapus data mata pelajaran!.",
                                     icon: "success"
                                 }).then(() => {
                                     location.reload();

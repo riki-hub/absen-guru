@@ -48,6 +48,14 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                 width: 100%;
             }
         }
+               .input-group-text {
+    background-color: #007bff;
+    color: white;
+    border: none;
+}
+#searchInput {
+    border-radius: 0.25rem 0 0 0.25rem;
+}
     </style>
 </head>
 
@@ -113,32 +121,37 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                             <span class="menu-title">Dashboard</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
-                            <i class="ti-dashboard menu-icon"></i>
-                            <span class="menu-title">Data Master</span>
-                            <i class="menu-arrow"></i>
-                        </a>
-                        <div class="collapse" id="ui-basic">
-                            <ul class="nav flex-column sub-menu">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="pengguna.php">Data Pengguna</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="guru.php">Data Guru</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="kelas.php">Data Kelas</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="siswa.php">Data Siswa</a>
-                                </li>
-                                  <li class="nav-item">
-                                    <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
+                     <?php if ($_SESSION['username'] != 'admin') : ?>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+          <i class="ti-dashboard menu-icon"></i>
+          <span class="menu-title">Data Master</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="ui-basic">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item">
+              <a class="nav-link" href="pengguna.php">Data Pengguna</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="guru.php">Data Guru</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="kelas.php">Data Kelas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="siswa.php">Data Siswa</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="location.php">Location</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+    <?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link" data-toggle="collapse" href="#hadir" aria-expanded="false" aria-controls="hadir">
                             <i class="ti-layout-grid2 menu-icon"></i>
@@ -262,6 +275,15 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                         <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 font-weight-bold text-primary">Data Materi</h6>
                             <div class="d-flex">
+                                <!-- Search Input -->
+        <div class="input-group mr-2" style="width: 200px;">
+            <input type="text" id="searchInput" class="form-control" placeholder="Cari Nama Guru..." aria-label="Search">
+            <div class="input-group-append">
+                <span class="input-group-text">
+                    <i class="fas fa-search"></i>
+                </span>
+            </div>
+        </div>
                                 <a style="margin-top: 5px; margin-left: 5px;" href="proses/materi/cetak.php" target="_blank" class="btn btn-primary btn-icon-split btn-sm">
                                     <span class="icon text-white-55">
                                         <i class="fas fa-print"></i>
@@ -528,6 +550,38 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
             });
         });
     </script>
+
+    <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', function() {
+        const filter = searchInput.value.toLowerCase();
+        const table = document.querySelector('.table');
+        const rows = table.getElementsByTagName('tr');
+
+        // Loop through all table rows, starting from the second row (skip header)
+        for (let i = 1; i < rows.length; i++) {
+            const cells = rows[i].getElementsByTagName('td');
+            const nameCell = cells[2]; // Nama Guru is in the third column (index 2)
+            const mapelCell = cells[3]; // Mata Pelajaran is in the fourth column (index 3)
+            let match = false;
+
+            // Check if either Nama Guru or Mata Pelajaran matches the filter
+            if (nameCell || mapelCell) {
+                const nameText = nameCell ? (nameCell.textContent || nameCell.innerText).toLowerCase() : '';
+                const mapelText = mapelCell ? (mapelCell.textContent || mapelCell.innerText).toLowerCase() : '';
+                if (nameText.indexOf(filter) > -1 || mapelText.indexOf(filter) > -1) {
+                    match = true;
+                }
+            }
+
+            // Show or hide the row based on the match
+            rows[i].style.display = match ? '' : 'none';
+        }
+    });
+});
+</script>
 
     <script>
         $(document).ready(function() {

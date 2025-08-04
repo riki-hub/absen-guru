@@ -74,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result_check = $stmt_check->get_result();
 
             if ($result_check->num_rows > 0) {
-                throw new Exception('Data absensi untuk siswa ID ' . $siswa_id . ' pada tanggal, kelas, dan mata pelajaran ini sudah ada.');
+                throw new Exception('Anda sudah melakukan absensi.');
             }
             $stmt_check->close();
 

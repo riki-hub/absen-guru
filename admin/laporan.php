@@ -143,30 +143,37 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                             <span class="menu-title">Dashboard</span>
                         </a>
                     </li>
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
-                            <i class="ti-dashboard menu-icon"></i>
-                            <span class="menu-title">Data Master</span>
-                            <i class="menu-arrow"></i>
-                        </a>
-                        <div class="collapse" id="ui-basic">
-                            <ul class="nav flex-column sub-menu">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="pengguna.php">Data Pengguna</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="guru.php">Data Guru</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="kelas.php">Data Kelas</a>
-                                </li>
-                                  <li class="nav-item">
+                     <?php if ($_SESSION['username'] != 'admin') : ?>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+          <i class="ti-dashboard menu-icon"></i>
+          <span class="menu-title">Data Master</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="ui-basic">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item">
+              <a class="nav-link" href="pengguna.php">Data Pengguna</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="guru.php">Data Guru</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="kelas.php">Data Kelas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="siswa.php">Data Siswa</a>
+            </li>
+            <li class="nav-item">
               <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
             </li>
-                            </ul>
-                        </div>
-                    </li>
-
+            <li class="nav-item">
+              <a class="nav-link" href="location.php">Location</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+    <?php endif; ?>
                     <li class="nav-item">
                         <a class="nav-link" data-toggle="collapse" href="#hadir" aria-expanded="false" aria-controls="hadir">
                             <i class="ti-layout-grid2 menu-icon"></i>
