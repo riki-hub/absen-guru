@@ -132,37 +132,39 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                             <span class="menu-title">Dashboard</span>
                         </a>
                     </li>
-                    <?php if ($_SESSION['username'] != 'admin') : ?>
-                        <li class="nav-item">
-                            <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
-                                <i class="ti-dashboard menu-icon"></i>
-                                <span class="menu-title">Data Master</span>
-                                <i class="menu-arrow"></i>
-                            </a>
-                            <div class="collapse" id="ui-basic">
-                                <ul class="nav flex-column sub-menu">
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="pengguna.php">Data Pengguna</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="guru.php">Data Guru</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="kelas.php">Data Kelas</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="siswa.php">Data Siswa</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
-                                    </li>
-                                    <li class="nav-item">
-                                        <a class="nav-link" href="location.php">Location</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </li>
-                    <?php endif; ?>
+                     <?php if ($_SESSION['username'] != 'admin') : ?>
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
+          <i class="ti-dashboard menu-icon"></i>
+          <span class="menu-title">Data Master</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="ui-basic">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item">
+              <a class="nav-link" href="pengguna.php">Data Pengguna</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="guru.php">Data Guru</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="kelas.php">Data Kelas</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="siswa.php">Data Siswa</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="location.php">Location</a>
+            </li>
+          </ul>
+        </div>
+      </li>
+    <?php endif; ?>
+
+
                     <li class="nav-item">
                         <a class="nav-link" data-toggle="collapse" href="#hadir" aria-expanded="false" aria-controls="hadir">
                             <i class="ti-layout-grid2 menu-icon"></i>
@@ -216,7 +218,10 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                     <div class="card shadow mb-4">
                         <div class="card-header py-3 d-flex justify-content-between align-items-center">
                             <h6 class="m-0 font-weight-bold text-primary">Data Mata Pelajaran</h6>
-                            <div class="d-flex"></div>
+                            <div class="d-flex">
+                               <a href="export_materi.php" class="btn btn-success">Download Excel</a>
+
+                            </div>
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
@@ -243,7 +248,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                                                 <td style="text-align: center;"><?php echo $no; ?></td>
                                                 <td><?php echo $row['mata_pelajaran']; ?></td>
                                                 <td style="text-align: center;">
-                                                    <button class="btn btn-warning" style="font-size: 20px;" data-toggle="modal" data-target="#editModal" data-id="<?php echo $row['id']; ?>" data-nama="<?php echo htmlspecialchars($row['mata_pelajaran']); ?>">
+                                                    <button class="btn btn-warning" style="font-size: 20px;" data-id="<?php echo $row['id']; ?>" data-nama="<?php echo htmlspecialchars($row['mata_pelajaran']); ?>" data-toggle="modal" data-target="#editModal">
                                                         <i class="fa-regular fa-pen-to-square"></i>
                                                     </button>
                                                     <a title="hapus" class="btn btn-danger delete-btn" style="font-size: 20px;" data-id="<?php echo $row['id']; ?>"><i class="fa-solid fa-trash-can"></i></a>
@@ -300,7 +305,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                                 </button>
                             </div>
                             <div class="modal-body">
-                                <form class="needs-validation" action="proses/mapel/edit.php" method="post" id="editForm" novalidate>
+                                <form class="needs-validation" action="proses/mapel/edit.php" method="post" id="editForm">
                                     <input type="hidden" name="id" id="editId">
                                     <div class="row">
                                         <div class="col-md-12 mb-3">
@@ -371,7 +376,8 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                 $(this).addClass('was-validated');
             });
 
-            // Isi modal edit dengan data menggunakan event delegation
+            // Isi modal edit dengan data
+           // Benar: tetap berfungsi meskipun elemen dimuat ulang atau ada di halaman berikutnya
             $(document).on('click', '.btn-warning', function() {
                 const id = $(this).data('id');
                 const nama = $(this).data('nama');
@@ -379,6 +385,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                 $('#mataPelajaranEdit').val(nama);
                 $('#editForm').removeClass('was-validated');
             });
+
 
             // Hapus data
             $(document).on('click', '.delete-btn', function(e) {
@@ -394,7 +401,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
 
                 swalWithBootstrapButtons.fire({
                     title: "Anda yakin?",
-                    text: "Anda akan menghapus data mata pelajaran ini!",
+                    text: "Anda akan menghapus data ini!",
                     icon: "warning",
                     showCancelButton: true,
                     confirmButtonText: "Iya, hapus!",
@@ -411,7 +418,7 @@ if (!isset($_SESSION['nama']) || $_SESSION['role'] != 'admin') {
                             if (response.ok) {
                                 swalWithBootstrapButtons.fire({
                                     title: "Terhapus!",
-                                    text: "Sukses menghapus data mata pelajaran!.",
+                                    text: "Sukses menghapus data!.",
                                     icon: "success"
                                 }).then(() => {
                                     location.reload();

@@ -502,7 +502,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
       </a>
     </div>
 
-    
+
   </div>
 </div>
   </div>
@@ -935,7 +935,7 @@ if (!isset($_SESSION['role']) || $_SESSION['role'] != 'guru') {
     const currentHour = currentDate.getHours();
     const currentMinute = currentDate.getMinutes();
      //const timestamp = currentDate.toLocaleTimeString();
-     
+
      const now = new Date();
 
 // Ambil jam, menit, dan detik
@@ -1063,10 +1063,10 @@ console.log(timestamp);
 
       } else { // Selasa sampai Kamis
         const currentTimeInMinutes = currentHour * 60 + currentMinute;
-        
 
 
-        if (currentTimeInMinutes >= 450 && currentTimeInMinutes < 465) { // 07:30 - 08:05
+
+        if (currentTimeInMinutes >= 435 && currentTimeInMinutes < 450) { // 07:15 - 08:05
           jamAbsen = 1;
         } else if (currentTimeInMinutes >= 485 && currentTimeInMinutes < 500) { // 08:05 - 08:40
           jamAbsen = 2;

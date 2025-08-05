@@ -16,8 +16,8 @@ if (isset($_GET['id'])) {
 
     // menampilkan data dari database yang mempunyai id=$id dari tabel absen_msk
     $query = "SELECT absen_msk.*, akun_guru.nama
-              FROM absen_msk 
-              INNER JOIN akun_guru ON absen_msk.nama = akun_guru.nama 
+              FROM absen_msk
+              INNER JOIN akun_guru ON absen_msk.nama = akun_guru.nama
               WHERE absen_msk.id='$id'";
     $result = mysqli_query($koneksi, $query);
 
@@ -171,13 +171,14 @@ if (isset($_GET['id'])) {
             <!-- partial:partials/_sidebar.html -->
             <nav class="sidebar sidebar-offcanvas" id="sidebar">
                 <ul class="nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php">
-                            <i class="ti-home menu-icon"></i>
-                            <span class="menu-title">Dashboard</span>
-                        </a>
-                    </li>
-                     <?php if ($_SESSION['username'] != 'admin') : ?>
+    <li class="nav-item">
+      <a class="nav-link" href="index.php">
+        <i class="ti-home menu-icon"></i>
+        <span class="menu-title">Dashboard</span>
+      </a>
+    </li>
+
+    <?php if ($_SESSION['username'] != 'admin') : ?>
       <li class="nav-item">
         <a class="nav-link" data-toggle="collapse" href="#ui-basic" aria-expanded="false" aria-controls="ui-basic">
           <i class="ti-dashboard menu-icon"></i>
@@ -199,44 +200,61 @@ if (isset($_GET['id'])) {
               <a class="nav-link" href="siswa.php">Data Siswa</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="mapel.php">Data Mata Pelajaran</a>
-            </li>
-            <li class="nav-item">
-              <a class="nav-link" href="location.php">Location</a>
+              <a class="nav-link" href="location.php">Locations</a>
             </li>
           </ul>
         </div>
       </li>
     <?php endif; ?>
-                            </ul>
-                        </div>
-                    </li>
 
-                    <li class="nav-item">
-                        <a class="nav-link" data-toggle="collapse" href="#hadir" aria-expanded="false" aria-controls="hadir">
-                            <i class="ti-layout-grid2 menu-icon"></i>
-                            <span class="menu-title">Data Kehadiran</span>
-                            <i class="menu-arrow"></i>
-                        </a>
-                        <div class="collapse" id="hadir">
-                            <ul class="nav flex-column sub-menu">
-                                <li class="nav-item">
-                                    <a class="nav-link" href="izin.php">Data Izin</a>
-                                </li>
-                                <li class="nav-item">
-                                    <a class="nav-link" href="data.php">Data Hadir</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </li>
+    <li class="nav-item">
+      <a class="nav-link" data-toggle="collapse" href="#hadir" aria-expanded="false" aria-controls="hadir">
+        <i class="ti-layout-grid2 menu-icon"></i>
+        <span class="menu-title">Data Kehadiran</span>
+        <i class="menu-arrow"></i>
+      </a>
+      <div class="collapse" id="hadir">
+        <ul class="nav flex-column sub-menu">
 
-                    <li class="nav-item">
-                        <a class="nav-link" href="logot.php">
-                            <i class="fa-solid fa-arrow-right-from-bracket menu-icon"></i>
-                            <span class="menu-title">Logout</span>
-                        </a>
-                    </li>
-                </ul>
+          <li class="nav-item">
+            <a class="nav-link" href="izin.php">Data Izin</a>
+          </li>
+
+          <li class="nav-item">
+            <a class="nav-link" href="data.php">Data Hadir</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="data_bulanan.php">Data Hadir Bulanan</a>
+          </li>
+        </ul>
+      </div>
+    </li>
+
+      <!-- Menu Agenda dengan dropdown animasi -->
+      <li class="nav-item">
+        <a class="nav-link" data-toggle="collapse" href="#agenda" aria-expanded="false" aria-controls="agenda">
+          <i class="ti-agenda menu-icon"></i>
+          <span class="menu-title">Data Agenda</span>
+          <i class="menu-arrow"></i>
+        </a>
+        <div class="collapse" id="agenda">
+          <ul class="nav flex-column sub-menu">
+            <li class="nav-item">
+              <a class="nav-link" href="agenda.php">Agenda Harian</a>
+            </li>
+            <!-- Tambahkan submenu lain di sini jika dibutuhkan -->
+          </ul>
+        </div>
+      </li>
+
+
+    <li class="nav-item">
+      <a class="nav-link" href="logot.php">
+        <i class="fa-solid fa-arrow-right-from-bracket menu-icon"></i>
+        <span class="menu-title">Logout</span>
+      </a>
+    </li>
+  </ul>
             </nav>
             <!-- partial -->
             <div class="main-panel">
@@ -272,9 +290,9 @@ if (isset($_GET['id'])) {
                 $id = ($_GET["id"]);
 
                 // Menampilkan data dari database yang mempunyai id=$id dari tabel absen_msk
-                $query = "SELECT absen_msk.*, akun_guru.* 
-                          FROM absen_msk 
-                          INNER JOIN akun_guru ON absen_msk.nama = akun_guru.nama 
+                $query = "SELECT absen_msk.*, akun_guru.*
+                          FROM absen_msk
+                          INNER JOIN akun_guru ON absen_msk.nama = akun_guru.nama
                           WHERE absen_msk.id='$id'";
                 $result = mysqli_query($koneksi, $query);
 
