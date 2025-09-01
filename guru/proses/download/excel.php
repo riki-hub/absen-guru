@@ -1,41 +1,51 @@
 <?php
 require '../../../vendor/autoload.php'; // sesuaikan path
 include('../../../koneksi.php');
-
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
-use PhpOffice\PhpSpreadsheet\Style\Fill;
 
+// Get parameters from GET request
 $startDate = $_GET['startDate'];
 $endDate = $_GET['endDate'];
 $kelasId = $_GET['kelas_id'];
 
-// Ambil tanggal
+// Fetch class name
+$kelasQuery = "SELECT nama_kelas FROM kelas WHERE id = ?";
+$kelasStmt = $koneksi->prepare($kelasQuery);
+$kelasStmt->bind_param("s", $kelasId);
+$kelasStmt->execute();
+$kelasResult = $kelasStmt->get_result();
+$kelasName = $kelasResult->fetch_assoc()['nama_kelas'] ?? 'unknown_class';
+
+// Fetch unique dates
 $tanggalQuery = "SELECT DISTINCT tanggal FROM absensi 
-                 WHERE tanggal BETWEEN ? AND ? ORDER BY tanggal ASC";
+                 WHERE tanggal BETWEEN ? AND ? 
+                 ORDER BY tanggal ASC";
 $tanggalStmt = $koneksi->prepare($tanggalQuery);
 $tanggalStmt->bind_param("ss", $startDate, $endDate);
 $tanggalStmt->execute();
 $tanggalResult = $tanggalStmt->get_result();
+
 $tanggalList = [];
-foreach ($tanggalResult as $row) {
+while ($row = $tanggalResult->fetch_assoc()) {
     $tanggalList[] = $row['tanggal'];
 }
 
-// Ambil siswa
+// Fetch students in the specified class
 $siswaQuery = "SELECT id, nama_siswa FROM siswa WHERE kelas_id = ? ORDER BY nama_siswa ASC";
 $siswaStmt = $koneksi->prepare($siswaQuery);
 $siswaStmt->bind_param("s", $kelasId);
 $siswaStmt->execute();
 $siswaResult = $siswaStmt->get_result();
+
 $siswaList = [];
-foreach ($siswaResult as $row) {
+while ($row = $siswaResult->fetch_assoc()) {
     $siswaList[] = $row;
 }
 
-// Ambil absensi
+// Fetch all attendance data
 $absensiQuery = "SELECT siswa_id, tanggal, hadir, sakit, izin, alpa FROM absensi 
                  WHERE tanggal BETWEEN ? AND ?";
 $absensiStmt = $koneksi->prepare($absensiQuery);
@@ -47,20 +57,20 @@ $absensiData = [];
 while ($row = $absensiResult->fetch_assoc()) {
     $siswaId = $row['siswa_id'];
     $tanggal = $row['tanggal'];
-    $symbol = '';
+    // Display empty for present, only show S/I/A
     if ($row['sakit']) $symbol = 'S';
     elseif ($row['izin']) $symbol = 'I';
     elseif ($row['alpa']) $symbol = 'A';
-    // kalau hadir maka kosong (tidak tampil 'H')
+    else $symbol = ''; // Present or no data
     $absensiData[$siswaId][$tanggal] = $symbol;
 }
 
-
-// Rekap
-$absensiStmt->execute();
+// Calculate attendance summary
+$absensiStmt->execute(); // Re-execute as the result was consumed
 $absensiResult = $absensiStmt->get_result();
+
 $rekapData = [];
-foreach ($absensiResult as $row) {
+while ($row = $absensiResult->fetch_assoc()) {
     $id = $row['siswa_id'];
     if (!isset($rekapData[$id])) {
         $rekapData[$id] = ['H' => 0, 'I' => 0, 'S' => 0, 'A' => 0];
@@ -71,91 +81,118 @@ foreach ($absensiResult as $row) {
     if ($row['alpa'])  $rekapData[$id]['A']++;
 }
 
-// Spreadsheet
+// Create new Spreadsheet object
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
-$sheet->setTitle("Absensi");
 
-// Judul
+// Set document properties
+$spreadsheet->getProperties()
+    ->setCreator('Your Name')
+    ->setTitle('Laporan Absensi Siswa')
+    ->setSubject('Laporan Absensi')
+    ->setDescription('Laporan absensi siswa untuk periode tertentu');
+
+// Title and period
 $sheet->setCellValue('A1', 'Laporan Absensi Siswa');
-$sheet->mergeCells('A1:E1');
 $sheet->setCellValue('A2', "Periode: $startDate s.d. $endDate");
 
-// Header
-$rowNum = 4;
-$col = 'A';
-$sheet->setCellValue($col++ . $rowNum, 'No');
-$sheet->setCellValue($col++ . $rowNum, 'Nama Siswa');
+// Merge cells for title
+$sheet->mergeCells('A1:' . chr(65 + count($tanggalList) + 4) . '1'); // Adjust based on columns
+$sheet->mergeCells('A2:' . chr(65 + count($tanggalList) + 4) . '2');
+$sheet->getStyle('A1')->getFont()->setBold(true)->setSize(14);
+$sheet->getStyle('A2')->getFont()->setSize(11);
+$sheet->getStyle('A1:A2')->getAlignment()->setHorizontal(Alignment::HORIZONTAL_CENTER);
 
+// Headers
+$sheet->setCellValue('A4', 'No');
+$sheet->setCellValue('B4', 'Nama Siswa');
+$col = 'C';
 foreach ($tanggalList as $tgl) {
-    $sheet->setCellValue($col++ . $rowNum, date('j', strtotime($tgl)));
+    $sheet->setCellValue($col . '4', date('j', strtotime($tgl)));
+    $col++;
 }
+$sheet->setCellValue($col . '4', 'H');
+$col++;
+$sheet->setCellValue($col . '4', 'I');
+$col++;
+$sheet->setCellValue($col . '4', 'S');
+$col++;
+$sheet->setCellValue($col . '4', 'A');
 
-// Hapus kolom 'H' pada header, langsung ke I, S, A
-$sheet->setCellValue($col++ . $rowNum, 'I');
-$sheet->setCellValue($col++ . $rowNum, 'S');
-$sheet->setCellValue($col++ . $rowNum, 'A');
-
-// Data siswa
-$rowNum++;
-$no = 1;
-foreach ($siswaList as $siswa) {
-    $col = 'A';
-    $siswaId = $siswa['id'];
-
-    $sheet->setCellValue($col++ . $rowNum, $no++);
-    $sheet->setCellValue($col++ . $rowNum, $siswa['nama_siswa']);
-
-    foreach ($tanggalList as $tanggal) {
-        $symbol = $absensiData[$siswaId][$tanggal] ?? '';
-        $sheet->setCellValue($col++ . $rowNum, $symbol);
-    }
-
-    // Hapus data kolom hadir 'H' di rekap
-    // $sheet->setCellValue($col++ . $rowNum, $rekapData[$siswaId]['H'] ?? 0);
-    $sheet->setCellValue($col++ . $rowNum, $rekapData[$siswaId]['I'] ?? 0);
-    $sheet->setCellValue($col++ . $rowNum, $rekapData[$siswaId]['S'] ?? 0);
-    $sheet->setCellValue($col++ . $rowNum, $rekapData[$siswaId]['A'] ?? 0);
-
-    $rowNum++;
-}
-
-// Auto size hanya tanggal
-$columnIndex = 'C';
-foreach ($tanggalList as $_) {
-    $sheet->getColumnDimension($columnIndex++)->setAutoSize(true);
-}
-
-// Set lebar tetap (hapus kolom H)
-$sheet->getColumnDimension('A')->setWidth(5);   // No
-$sheet->getColumnDimension('B')->setWidth(25);  // Nama
-// Hilangkan pengaturan lebar kolom 'H'
-// $sheet->getColumnDimension($columnIndex++)->setWidth(5);  // H
-$sheet->getColumnDimension($columnIndex++)->setWidth(5);  // I
-$sheet->getColumnDimension($columnIndex++)->setWidth(5);  // S
-$sheet->getColumnDimension($columnIndex++)->setWidth(5);  // A
-
-// Style
-$styleArray = [
+// Apply styles to headers
+$headerStyle = [
+    'font' => ['bold' => true, 'size' => 9],
+    'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
     'borders' => [
-        'allBorders' => [
-            'borderStyle' => Border::BORDER_THIN,
-        ],
-    ],
-    'alignment' => [
-        'horizontal' => Alignment::HORIZONTAL_CENTER,
-        'vertical'   => Alignment::VERTICAL_CENTER,
+        'allBorders' => ['borderStyle' => Border::BORDER_THIN],
     ],
 ];
+$sheet->getStyle('A4:' . $col . '4')->applyFromArray($headerStyle);
 
-$sheet->getStyle("A4:" . $col . ($rowNum - 1))->applyFromArray($styleArray);
+// Data rows
+$row = 5;
+$no = 1;
+foreach ($siswaList as $siswa) {
+    $siswaId = $siswa['id'];
+    $sheet->setCellValue('A' . $row, $no++);
+    $sheet->setCellValue('B' . $row, $siswa['nama_siswa']);
 
-// Output
+    $col = 'C';
+    foreach ($tanggalList as $tanggal) {
+        $symbol = $absensiData[$siswaId][$tanggal] ?? '';
+        $sheet->setCellValue($col . $row, $symbol);
+        $col++;
+    }
+
+    $h = $rekapData[$siswaId]['H'] ?? 0;
+    $i = $rekapData[$siswaId]['I'] ?? 0;
+    $s = $rekapData[$siswaId]['S'] ?? 0;
+    $a = $rekapData[$siswaId]['A'] ?? 0;
+
+    $sheet->setCellValue($col . $row, $h);
+    $col++;
+    $sheet->setCellValue($col . $row, $i);
+    $col++;
+    $sheet->setCellValue($col . $row, $s);
+    $col++;
+    $sheet->setCellValue($col . $row, $a);
+
+    // Apply borders to data row
+    $sheet->getStyle('A' . $row . ':' . $col . $row)->applyFromArray([
+        'borders' => [
+            'allBorders' => ['borderStyle' => Border::BORDER_THIN],
+        ],
+        'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER, 'vertical' => Alignment::VERTICAL_CENTER],
+    ]);
+
+    $row++;
+}
+
+// Set column widths
+$sheet->getColumnDimension('A')->setWidth(5);
+$sheet->getColumnDimension('B')->setWidth(20);
+for ($i = 0; $i < count($tanggalList); $i++) {
+    $sheet->getColumnDimension(chr(67 + $i))->setWidth(3); // C onward for dates
+}
+$sheet->getColumnDimension(chr(67 + count($tanggalList)))->setWidth(5); // H
+$sheet->getColumnDimension(chr(68 + count($tanggalList)))->setWidth(5); // I
+$sheet->getColumnDimension(chr(69 + count($tanggalList)))->setWidth(5); // S
+$sheet->getColumnDimension(chr(70 + count($tanggalList)))->setWidth(5); // A
+
+// Set row height for headers and data
+$sheet->getRowDimension(4)->setRowHeight(20);
+for ($i = 5; $i < $row; $i++) {
+    $sheet->getRowDimension($i)->setRowHeight(20);
+}
+
+// Sanitize class name for filename (remove invalid characters)
+$safeKelasName = preg_replace('/[^A-Za-z0-9_-]/', '_', $kelasName);
+
+// Output Excel file
 header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-header("Content-Disposition: attachment;filename=\"laporan_absensi.xlsx\"");
+header('Content-Disposition: attachment;filename="laporan_absensi_' . $safeKelasName . '.xlsx"');
 header('Cache-Control: max-age=0');
 
 $writer = new Xlsx($spreadsheet);
 $writer->save('php://output');
 exit;
-?>
