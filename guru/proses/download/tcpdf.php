@@ -1,131 +1,262 @@
 <?php
-require_once('../../tcpdf/tcpdf.php');
-include('../../../koneksi.php');
+require_once('../../tcpdf/tcpdf.php'); // Sesuaikan path jika TCPDF berada di lokasi lain
+include '../../../koneksi.php';
 
-$startDate = $_GET['startDate'];
-$endDate = $_GET['endDate'];
-$kelasId = $_GET['kelas_id'];
+// Pastikan pengguna telah login
+session_start();
+if (!isset($_SESSION['username'])) {
+    echo "<script>alert('Silakan login terlebih dahulu.'); window.location.href = 'login.php';</script>";
+    exit;
+}
 
-// Ambil semua tanggal unik
-$tanggalQuery = "SELECT DISTINCT tanggal FROM absensi 
-                 WHERE tanggal BETWEEN ? AND ? 
-                 ORDER BY tanggal ASC";
-$tanggalStmt = $koneksi->prepare($tanggalQuery);
-$tanggalStmt->bind_param("ss", $startDate, $endDate);
-$tanggalStmt->execute();
-$tanggalResult = $tanggalStmt->get_result();
+// Ambil parameter filter dari GET request
+$startDate = isset($_GET['startDate']) ? $_GET['startDate'] : date('Y-m-d');
+$endDate = isset($_GET['endDate']) ? $_GET['endDate'] : date('Y-m-d');
+$kelasId = isset($_GET['kelas_id']) ? intval($_GET['kelas_id']) : 0;
+$mapelId = isset($_GET['mapel_id']) ? intval($_GET['mapel_id']) : 0;
 
+// Validasi input
+if (!$kelasId || !$startDate || !$endDate) {
+    die('Parameter filter tidak lengkap.');
+}
+if (strtotime($endDate) < strtotime($startDate)) {
+    die('Tanggal akhir tidak boleh sebelum tanggal awal.');
+}
+
+// Ambil nama kelas
+$kelasQuery = "SELECT nama_kelas FROM kelas WHERE id = ?";
+$stmt = $koneksi->prepare($kelasQuery);
+if ($stmt === false) {
+    error_log('Prepare failed for kelas query: ' . $koneksi->error);
+    die('Terjadi kesalahan dalam query kelas: ' . htmlspecialchars($koneksi->error));
+}
+$stmt->bind_param('i', $kelasId);
+$stmt->execute();
+$kelasResult = $stmt->get_result();
+$kelas = $kelasResult->fetch_assoc();
+$namaKelas = $kelas ? htmlspecialchars($kelas['nama_kelas']) : 'Unknown';
+$stmt->close();
+
+// Ambil nama mata pelajaran jika ada
+$namaMapel = 'Semua Mata Pelajaran';
+if ($mapelId > 0) {
+    $mapelQuery = "SELECT mata_pelajaran FROM pelajaran WHERE id = ?";
+    $stmt = $koneksi->prepare($mapelQuery);
+    if ($stmt === false) {
+        error_log('Prepare failed for mapel query: ' . $koneksi->error);
+        die('Terjadi kesalahan dalam query mata pelajaran: ' . htmlspecialchars($koneksi->error));
+    }
+    $stmt->bind_param('i', $mapelId);
+    $stmt->execute();
+    $mapelResult = $stmt->get_result();
+    $mapel = $mapelResult->fetch_assoc();
+    $namaMapel = $mapel ? htmlspecialchars($mapel['mata_pelajaran']) : 'Tidak Diketahui';
+    $stmt->close();
+}
+
+// Ambil tanggal unik dalam rentang
+$tanggalQuery = "SELECT DISTINCT a.tanggal FROM absensi a JOIN siswa s ON a.siswa_id = s.id WHERE a.tanggal BETWEEN ? AND ? AND s.kelas_id = ? ";
+$params = [$startDate, $endDate, $kelasId];
+$types = 'ssi';
+if ($mapelId > 0) {
+    $tanggalQuery .= "AND a.id_mapel = ? ";
+    $types .= 'i';
+    $params[] = $mapelId;
+}
+$tanggalQuery .= "ORDER BY a.tanggal ASC";
+$stmt = $koneksi->prepare($tanggalQuery);
+if ($stmt === false) {
+    error_log('Prepare failed for tanggal query: ' . $koneksi->error);
+    die('Terjadi kesalahan dalam query tanggal: ' . htmlspecialchars($koneksi->error));
+}
+$stmt->bind_param($types, ...$params);
+$stmt->execute();
+$tanggalResult = $stmt->get_result();
 $tanggalList = [];
-foreach ($tanggalResult as $row) {
+while ($row = $tanggalResult->fetch_assoc()) {
     $tanggalList[] = $row['tanggal'];
 }
+$stmt->close();
 
-// Ambil semua siswa di kelas tersebut
-$siswaQuery = "SELECT id, nama_siswa FROM siswa WHERE kelas_id = ? ORDER BY nama_siswa ASC";
-$siswaStmt = $koneksi->prepare($siswaQuery);
-$siswaStmt->bind_param("s", $kelasId);
-$siswaStmt->execute();
-$siswaResult = $siswaStmt->get_result();
-
-$siswaList = [];
-foreach ($siswaResult as $row) {
-    $siswaList[] = $row;
+if (empty($tanggalList)) {
+    die('Tidak ada data absensi untuk periode dan kelas yang dipilih.');
 }
 
-// Ambil semua data absensi sekaligus
-$absensiQuery = "SELECT siswa_id, tanggal, hadir, sakit, izin, alpa FROM absensi 
-                 WHERE tanggal BETWEEN ? AND ?";
-$absensiStmt = $koneksi->prepare($absensiQuery);
-$absensiStmt->bind_param("ss", $startDate, $endDate);
-$absensiStmt->execute();
-$absensiResult = $absensiStmt->get_result();
+// Ambil daftar siswa
+$siswaQuery = "SELECT id, nama_siswa FROM siswa WHERE kelas_id = ? ORDER BY nama_siswa ASC";
+$stmt = $koneksi->prepare($siswaQuery);
+if ($stmt === false) {
+    error_log('Prepare failed for siswa query: ' . $koneksi->error);
+    die('Terjadi kesalahan dalam query siswa: ' . htmlspecialchars($koneksi->error));
+}
+$stmt->bind_param('i', $kelasId);
+$stmt->execute();
+$siswaResult = $stmt->get_result();
+$siswaList = [];
+while ($row = $siswaResult->fetch_assoc()) {
+    $siswaList[$row['id']] = $row['nama_siswa'];
+}
+$stmt->close();
 
+if (empty($siswaList)) {
+    die('Tidak ada siswa ditemukan untuk kelas yang dipilih.');
+}
+
+// Ambil data absensi dengan prioritas
+$absensiQuery = "SELECT a.siswa_id, a.tanggal,
+                MAX(CASE WHEN a.hadir = 1 THEN 1 ELSE 0 END) as hadir,
+                MAX(CASE WHEN a.sakit = 1 THEN 1 ELSE 0 END) as sakit,
+                MAX(CASE WHEN a.izin = 1 THEN 1 ELSE 0 END) as izin,
+                MAX(CASE WHEN a.alpa = 1 THEN 1 ELSE 0 END) as alpa
+                FROM absensi a
+                JOIN siswa s ON a.siswa_id = s.id
+                WHERE a.tanggal BETWEEN ? AND ? AND s.kelas_id = ? ";
+$params = [$startDate, $endDate, $kelasId];
+$types = 'ssi';
+if ($mapelId > 0) {
+    $absensiQuery .= "AND a.id_mapel = ? ";
+    $types .= 'i';
+    $params[] = $mapelId;
+}
+$absensiQuery .= "GROUP BY a.siswa_id, a.tanggal";
+$stmt = $koneksi->prepare($absensiQuery);
+if ($stmt === false) {
+    error_log('Prepare failed for absensi query: ' . $koneksi->error);
+    die('Terjadi kesalahan dalam query absensi: ' . htmlspecialchars($koneksi->error));
+}
+$stmt->bind_param($types, ...$params);
+$stmt->execute();
+$absensiResult = $stmt->get_result();
 $absensiData = [];
+$rekapData = [];
 while ($row = $absensiResult->fetch_assoc()) {
     $siswaId = $row['siswa_id'];
     $tanggal = $row['tanggal'];
-    // Tampilkan kosong jika hadir, hanya tampilkan S/I/A
-    if ($row['sakit']) $symbol = 'S';
-    elseif ($row['izin']) $symbol = 'I';
-    elseif ($row['alpa']) $symbol = 'A';
-    else $symbol = ''; // hadir atau tidak ada data tampil kosong
-    $absensiData[$siswaId][$tanggal] = $symbol;
-}
-
-// Hitung total kehadiran
-$absensiStmt->execute(); // ulangi karena sudah habis dibaca di atas
-$absensiResult = $absensiStmt->get_result();
-
-$rekapData = [];
-foreach ($absensiResult as $row) {
-    $id = $row['siswa_id'];
-    if (!isset($rekapData[$id])) {
-        $rekapData[$id] = ['H' => 0, 'I' => 0, 'S' => 0, 'A' => 0];
+    $symbol = '';
+    if ($row['hadir']) {
+        $symbol = '';
+    } elseif ($row['sakit']) {
+        $symbol = 'S';
+    } elseif ($row['izin']) {
+        $symbol = 'I';
+    } elseif ($row['alpa']) {
+        $symbol = 'A';
     }
-    if ($row['hadir']) $rekapData[$id]['H']++;
-    if ($row['izin'])  $rekapData[$id]['I']++;
-    if ($row['sakit']) $rekapData[$id]['S']++;
-    if ($row['alpa'])  $rekapData[$id]['A']++;
+    $absensiData[$siswaId][$tanggal] = $symbol;
+
+    if (!isset($rekapData[$siswaId])) {
+        $rekapData[$siswaId] = ['H' => 0, 'I' => 0, 'S' => 0, 'A' => 0];
+    }
+    if ($row['hadir']) {
+        $rekapData[$siswaId]['H']++;
+    } elseif ($row['sakit']) {
+        $rekapData[$siswaId]['S']++;
+    } elseif ($row['izin']) {
+        $rekapData[$siswaId]['I']++;
+    } elseif ($row['alpa']) {
+        $rekapData[$siswaId]['A']++;
+    }
+}
+$stmt->close();
+$koneksi->close();
+
+// Buat dokumen PDF baru
+class MYPDF extends TCPDF {
+    public function Header() {
+        $this->SetFont('helvetica', 'B', 14);
+        $this->Cell(0, 10, 'Laporan Absensi Siswa - ' . $this->namaKelas, 0, 1, 'C');
+        $this->SetFont('helvetica', '', 10);
+        $this->Cell(0, 5, 'Periode: ' . date('d F Y', strtotime($this->startDate)) . ' s.d. ' . date('d F Y', strtotime($this->endDate)), 0, 1, 'C');
+        $this->Cell(0, 5, 'Mata Pelajaran: ' . $this->namaMapel, 0, 1, 'C');
+        $this->Ln(10); // Tingkatkan jarak sebelum tabel
+    }
+
+    public function Footer() {
+        $this->SetY(-15);
+        $this->SetFont('helvetica', 'I', 8);
+        $this->Cell(0, 10, 'Dicetak pada: ' . date('d/m/Y H:i') . ' WIB - Halaman ' . $this->getAliasNumPage() . '/' . $this->getAliasNbPages(), 0, 0, 'C');
+    }
+
+    public $namaKelas;
+    public $namaMapel;
+    public $startDate;
+    public $endDate;
 }
 
-// Siapkan PDF
-$pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
-$pdf->SetMargins(10, 10, 10);
+$pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+
+// Set informasi dokumen
+$pdf->SetCreator(PDF_CREATOR);
+$pdf->SetAuthor('Sistem Absensi Guru');
+$pdf->SetTitle('Laporan Absensi Siswa');
+$pdf->SetSubject('Attendance Report');
+$pdf->SetKeywords('attendance, report, student');
+
+// Set properti
+$pdf->namaKelas = $namaKelas;
+$pdf->namaMapel = $namaMapel;
+$pdf->startDate = $startDate;
+$pdf->endDate = $endDate;
+
+// Set margin dan auto page breaks
+$pdf->SetMargins(15, 30, 15); // Margin kiri, atas, kanan
+$pdf->SetHeaderMargin(10);
+$pdf->SetFooterMargin(15);
+$pdf->SetAutoPageBreak(TRUE, 25); // Tingkatkan untuk penanganan tabel yang lebih baik
+
+// Tambah halaman
 $pdf->AddPage();
-$pdf->SetFont('helvetica', 'B', 14);
-$pdf->Cell(0, 10, 'Laporan Absensi Siswa', 0, 1, 'C');
 
-$pdf->SetFont('helvetica', '', 11);
-$pdf->Cell(0, 6, "Periode: $startDate s.d. $endDate", 0, 1);
-$pdf->Ln(2);
+// Set font
+$pdf->SetFont('helvetica', '', 9); // Ukuran font dikurangi untuk menyesuaikan kertas
 
-// Hitung jumlah kolom
-$jmlTanggal = count($tanggalList);
-$jmlRekap = 4; // H, I, S, A
-$totalLebar = 277; // Lebar halaman A4 lanskap dikurangi margin (297 - 2*10)
+// Hitung lebar tabel dan posisi kolom
+$totalWidth = 160; // Lebar total sesuai dengan kertas A4 (190mm - 2 x 15mm margin)
+$colWidthNo = 10; // Kolom No
+$colWidthName = 50; // Kolom Nama Siswa
+$colWidthDate = ($totalWidth - $colWidthNo - $colWidthName - (2 * 12)) / count($tanggalList); // Lebar kolom tanggal disesuaikan dinamis
+$colWidthSummary = 12; // Kolom ringkasan (H, I, S, A)
 
-$lebarNo = 10;
-$lebarNama = 50;
-$sisaLebar = $totalLebar - $lebarNo - $lebarNama;
-
-$lebarTanggal = $jmlTanggal > 0 ? ($sisaLebar * 0.7) / $jmlTanggal : 0;
-$lebarRekap = ($sisaLebar * 0.3) / $jmlRekap;
-
-// Header
-$pdf->SetFont('helvetica', 'B', 9);
-$pdf->Cell($lebarNo, 8, 'No', 1, 0, 'C');
-$pdf->Cell($lebarNama, 8, 'Nama Siswa', 1, 0, 'C');
-
-foreach ($tanggalList as $tgl) {
-    $pdf->Cell($lebarTanggal, 8, date('j', strtotime($tgl)), 1, 0, 'C');
+// Baris header dengan styling
+$html = '<table border="1" cellpadding="2" cellspacing="0" style="border-collapse: collapse; font-size: 9px; width: ' . $totalWidth . 'mm;">';
+$html .= '<thead><tr style="background-color: #e2e8f0;">';
+$html .= '<th width="' . $colWidthNo . 'mm" style="text-align: center; font-weight: bold; border: 1px solid #000;">No</th>';
+$html .= '<th width="' . $colWidthName . 'mm" style="text-align: center; font-weight: bold; border: 1px solid #000;">Nama Siswa</th>';
+foreach ($tanggalList as $tanggal) {
+    $html .= '<th width="' . $colWidthDate . 'mm" style="text-align: center; font-weight: bold; border: 1px solid #000;">' . date('d', strtotime($tanggal)) . '</th>';
 }
-$pdf->Cell($lebarRekap, 8, 'H', 1, 0, 'C');
-$pdf->Cell($lebarRekap, 8, 'I', 1, 0, 'C');
-$pdf->Cell($lebarRekap, 8, 'S', 1, 0, 'C');
-$pdf->Cell($lebarRekap, 8, 'A', 1, 1, 'C');
+$html .= '<th width="' . $colWidthSummary . 'mm" style="text-align: center; font-weight: bold; border: 1px solid #000;">H</th>';
+$html .= '<th width="' . $colWidthSummary . 'mm" style="text-align: center; font-weight: bold; border: 1px solid #000;">I</th>';
+$html .= '<th width="' . $colWidthSummary . 'mm" style="text-align: center; font-weight: bold; border: 1px solid #000;">S</th>';
+$html .= '<th width="' . $colWidthSummary . 'mm" style="text-align: center; font-weight: bold; border: 1px solid #000;">A</th>';
+$html .= '</tr></thead><tbody>';
 
-// Data siswa
-$pdf->SetFont('helvetica', '', 9);
+// Baris data
 $no = 1;
-foreach ($siswaList as $siswa) {
-    $siswaId = $siswa['id'];
-    $pdf->Cell($lebarNo, 8, $no++, 1);
-    $pdf->Cell($lebarNama, 8, $siswa['nama_siswa'], 1);
-
+foreach ($siswaList as $siswaId => $namaSiswa) {
+    $html .= '<tr>';
+    $html .= '<td width="' . $colWidthNo . 'mm" style="text-align: center; border: 1px solid #000; padding: 2px;">' . $no++ . '</td>';
+    $html .= '<td width="' . $colWidthName . 'mm" style="text-align: left; border: 1px solid #000; padding: 2px; word-break: break-all;">' . htmlspecialchars($namaSiswa) . '</td>';
     foreach ($tanggalList as $tanggal) {
         $symbol = $absensiData[$siswaId][$tanggal] ?? '';
-        $pdf->Cell($lebarTanggal, 8, $symbol, 1, 0, 'C');
+        $html .= '<td width="' . $colWidthDate . 'mm" style="text-align: center; border: 1px solid #000; padding: 2px;">' . $symbol . '</td>';
     }
-
     $h = $rekapData[$siswaId]['H'] ?? 0;
     $i = $rekapData[$siswaId]['I'] ?? 0;
     $s = $rekapData[$siswaId]['S'] ?? 0;
     $a = $rekapData[$siswaId]['A'] ?? 0;
-
-    $pdf->Cell($lebarRekap, 8, $h, 1, 0, 'C');
-    $pdf->Cell($lebarRekap, 8, $i, 1, 0, 'C');
-    $pdf->Cell($lebarRekap, 8, $s, 1, 0, 'C');
-    $pdf->Cell($lebarRekap, 8, $a, 1, 1, 'C');
+    $html .= '<td width="' . $colWidthSummary . 'mm" style="text-align: center; border: 1px solid #000; padding: 2px;">' . $h . '</td>';
+    $html .= '<td width="' . $colWidthSummary . 'mm" style="text-align: center; border: 1px solid #000; padding: 2px;">' . $i . '</td>';
+    $html .= '<td width="' . $colWidthSummary . 'mm" style="text-align: center; border: 1px solid #000; padding: 2px;">' . $s . '</td>';
+    $html .= '<td width="' . $colWidthSummary . 'mm" style="text-align: center; border: 1px solid #000; padding: 2px;">' . $a . '</td>';
+    $html .= '</tr>';
 }
+$html .= '</tbody></table>';
 
-$pdf->Output('laporan_absensi_final.pdf', 'I');
+// Keluarkan konten HTML
+$pdf->writeHTML($html, true, false, true, false, '');
+
+// Tutup dan keluarkan dokumen PDF
+$filename = 'Laporan_Absensi_' . str_replace(' ', '_', $namaKelas) . '_' . date('Ymd', strtotime($startDate)) . '_to_' . date('Ymd', strtotime($endDate)) . '.pdf';
+$pdf->Output($filename, 'D');
+?>
