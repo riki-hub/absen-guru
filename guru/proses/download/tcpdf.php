@@ -1,13 +1,14 @@
 <?php
-require_once('../../tcpdf/tcpdf.php'); // Sesuaikan path jika TCPDF berada di lokasi lain
+// PHP 8.4 kompatibel export PDF dengan TCPDF
+
+// Include TCPDF
+require_once(__DIR__ . '/../../../vendor/autoload.php');
+
+// Sisanya kode Anda... Sesuaikan path jika TCPDF berada di lokasi lain
 include '../../../koneksi.php';
 
 // Pastikan pengguna telah login
 session_start();
-if (!isset($_SESSION['username'])) {
-    echo "<script>alert('Silakan login terlebih dahulu.'); window.location.href = 'login.php';</script>";
-    exit;
-}
 
 // Ambil parameter filter dari GET request
 $startDate = isset($_GET['startDate']) ? $_GET['startDate'] : date('Y-m-d');
@@ -142,6 +143,9 @@ while ($row = $absensiResult->fetch_assoc()) {
     } elseif ($row['alpa']) {
         $symbol = 'A';
     }
+    if (!isset($absensiData[$siswaId])) {
+        $absensiData[$siswaId] = [];
+    }
     $absensiData[$siswaId][$tanggal] = $symbol;
 
     if (!isset($rekapData[$siswaId])) {
@@ -183,10 +187,11 @@ class MYPDF extends TCPDF {
     public $endDate;
 }
 
-$pdf = new MYPDF(PDF_PAGE_ORIENTATION, PDF_UNIT, PDF_PAGE_FORMAT, true, 'UTF-8', false);
+// Hindari ketergantungan pada konstanta global TCPDF
+$pdf = new MYPDF('P', 'mm', 'A4', true, 'UTF-8', false);
 
 // Set informasi dokumen
-$pdf->SetCreator(PDF_CREATOR);
+$pdf->SetCreator('TCPDF');
 $pdf->SetAuthor('Sistem Absensi Guru');
 $pdf->SetTitle('Laporan Absensi Siswa');
 $pdf->SetSubject('Attendance Report');
@@ -236,7 +241,7 @@ $no = 1;
 foreach ($siswaList as $siswaId => $namaSiswa) {
     $html .= '<tr>';
     $html .= '<td width="' . $colWidthNo . 'mm" style="text-align: center; border: 1px solid #000; padding: 2px;">' . $no++ . '</td>';
-    $html .= '<td width="' . $colWidthName . 'mm" style="text-align: left; border: 1px solid #000; padding: 2px; word-break: break-all;">' . htmlspecialchars($namaSiswa) . '</td>';
+    $html .= '<td width="' . $colWidthName . 'mm" style="text-align: left; border: 1px solid #000; padding: 2px; word-break: break-all;">' . htmlspecialchars($namaSiswa, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8') . '</td>';
     foreach ($tanggalList as $tanggal) {
         $symbol = $absensiData[$siswaId][$tanggal] ?? '';
         $html .= '<td width="' . $colWidthDate . 'mm" style="text-align: center; border: 1px solid #000; padding: 2px;">' . $symbol . '</td>';
@@ -254,9 +259,18 @@ foreach ($siswaList as $siswaId => $namaSiswa) {
 $html .= '</tbody></table>';
 
 // Keluarkan konten HTML
+// Tulis HTML ke PDF
 $pdf->writeHTML($html, true, false, true, false, '');
 
 // Tutup dan keluarkan dokumen PDF
 $filename = 'Laporan_Absensi_' . str_replace(' ', '_', $namaKelas) . '_' . date('Ymd', strtotime($startDate)) . '_to_' . date('Ymd', strtotime($endDate)) . '.pdf';
+
+// Pastikan tidak ada output buffer yang tertinggal agar PDF tidak korup
+if (function_exists('ob_get_length') && ob_get_length()) {
+    while (ob_get_level() > 0) {
+        ob_end_clean();
+    }
+}
+
 $pdf->Output($filename, 'D');
 ?>

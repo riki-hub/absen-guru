@@ -3,7 +3,8 @@
     "description": "absen guru",
     "type": "project",
     "require": {
-        "phpoffice/phpspreadsheet": "^1.25"
+        "phpoffice/phpspreadsheet": "^1.25",
+        "tecnickcom/tcpdf": "^6.10"
     },
     "autoload": {
         "psr-4": {

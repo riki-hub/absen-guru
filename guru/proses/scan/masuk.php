@@ -109,22 +109,22 @@ if ($hari == 'Monday') { // Logika khusus untuk hari Senin
 }
 
 else if ($hari == 'Friday') {
-    // Logika untuk hari Jumat
-    if (($jam == 7 && $menit >= 45) || ($jam == 8 && $menit < 15)) {
-        $kolom_jam = 'jam1'; // 07:45 - 08:19
-    } else if (($jam == 8 && $menit >= 20) || ($jam == 8 && $menit < 50)) {
-        $kolom_jam = 'jam2'; // 08:20 - 08:54
-    } else if (($jam == 8 && $menit >= 55) || ($jam == 9 && $menit < 25)) {
-        $kolom_jam = 'jam3'; // 08:55 - 09:29
-    } else if (($jam == 9 && $menit >= 30) || ($jam == 9 && $menit < 50)) {
-        $kolom_jam = 'istirahat'; // Istirahat (09:30 - 09:49)
-    } else if (($jam == 9 && $menit >= 50) || ($jam == 10 && $menit < 20)) {
-        $kolom_jam = 'jam4'; // 09:50 - 10:24
-    } else if ($jam == 10 && $menit >= 25 && $menit < 55) {
-        $kolom_jam = 'jam5'; // 10:25 - 10:59
-    } else if (($jam == 11 && $menit >= 0) && ($jam == 11 && $menit < 30)) {
-        $kolom_jam = 'jam6'; // 11:00 - 11:34
-    }
+   // Logika untuk hari Jumat
+   if (($jam == 7 && $menit >= 45) || ($jam == 8 && $menit < 15)) {
+       $kolom_jam = 'jam1';
+   } else if ($jam == 8 && $menit >= 20 && $menit < 55) {
+       $kolom_jam = 'jam2';
+   } else if (($jam == 8 && $menit >= 55) || ($jam == 9 && $menit < 30)) {
+       $kolom_jam = 'jam3';
+   } else if ($jam == 9 && $menit >= 30 && $menit < 49) {
+       $kolom_jam = 'istirahat';
+   } else if (($jam == 9 && $menit >= 50) || ($jam == 10 && $menit < 25)) {
+       $kolom_jam = 'jam4';
+   } else if ($jam == 10 && $menit >= 25 && $menit < 55) {
+       $kolom_jam = 'jam5';
+   } else if ($jam == 11 && $menit >= 0 && $menit < 35) {
+       $kolom_jam = 'jam6';
+   }
 }
 
 else if ($hari == 'Tuesday' ||  $hari == 'Wednesday' || $hari == 'Thursday') { // Logika khusus untuk hari selasa - kamis
